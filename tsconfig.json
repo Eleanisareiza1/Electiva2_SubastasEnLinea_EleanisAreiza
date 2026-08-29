@@ -1,13 +1,66 @@
 {
-  
+  // Configuraciones principales del compilador de TypeScript
   "compilerOptions": {
+
+    // Define el sistema de módulos que utilizará Node.js.
+    // "node16" está diseñado para trabajar con las reglas de módulos de Node.js 16.
     "module": "node16",
-    "esModuleInterop": true,
-    "target": "es6", //Serie de reglas de patrones
+
+    // Define la versión de JavaScript a la que TypeScript convertirá el código.
+    // "es6" significa ECMAScript 2015.
+    "target": "es6",
+
+    // Define cómo TypeScript buscará y resolverá las importaciones de módulos.
+    // "node16" utiliza las reglas modernas de resolución de módulos de Node.js.
     "moduleResolution": "node16",
+
+    // Permite importar módulos CommonJS utilizando una sintaxis más compatible.
+    // Por ejemplo: import express from "express";
+    "esModuleInterop": true,
+
+    // Genera archivos .map que permiten relacionar el código JavaScript
+    // compilado con el código TypeScript original para facilitar la depuración.
     "sourceMap": true,
-    "outDir": "dist",
-    "types": ["node"]
+
+
+    // Define la carpeta principal donde se encuentra el código fuente TypeScript.
+    // En este proyecto, todos los archivos principales están dentro de "src".
+    "rootDir": "./src",
+
+    // Define la carpeta donde se guardarán los archivos JavaScript compilados.
+    // TypeScript creará automáticamente esta carpeta si es necesario.
+    "outDir": "./dist",
+
+
+    // Indica los tipos globales que TypeScript debe cargar.
+    // "node" permite reconocer elementos propios de Node.js,
+    // como process, __dirname, Buffer, etc.
+    "types": ["node"],
+
+    // Define las bibliotecas estándar de JavaScript disponibles para TypeScript.
+    // "es2015" incluye funcionalidades modernas como Promise, Map, Set, etc.
+    "lib": ["es2015"]
   },
-    "Lib": ["es2015"]
+
+
+  // Indica qué archivos TypeScript deben ser incluidos en la compilación.
+  "include": [
+
+    // Incluye todos los archivos con extensión .ts que estén dentro de "src"
+    // y también dentro de cualquiera de sus subcarpetas.
+    "src/**/*.ts"
+  ],
+
+
+  // Indica qué carpetas o archivos NO deben ser compilados por TypeScript.
+  "exclude": [
+
+    // Excluye las dependencias instaladas mediante npm.
+    // No necesitamos compilar node_modules porque ya contiene código preparado.
+    "node_modules",
+
+    // Excluye la carpeta de salida para evitar que TypeScript intente
+    // volver a compilar los archivos JavaScript generados.
+    "dist"
+  ]
 }
