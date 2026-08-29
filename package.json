@@ -1,0 +1,32 @@
+{
+  "name": "electiva2_subastasenlinea_eleanisareiza",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+   "scripts": {
+    "build": "npx tsc",
+    "dev": "node --watch dist/server.js",
+    "app": "node --watch dist/app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Eleanisareiza1/Electiva2_SubastasEnLinea_EleanisAreiza.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Eleanisareiza1/Electiva2_SubastasEnLinea_EleanisAreiza/issues"
+  },
+  "homepage": "https://github.com/Eleanisareiza1/Electiva2_SubastasEnLinea_EleanisAreiza#readme",
+   "devDependencies": {
+    "@types/express": "^5.0.6",
+    "express": "^5.2.1",
+    "nodemon": "^3.1.14",
+    "typescript": "^7.0.2"
+  },
+  "dependencies": {
+    "@types/node": "^26.2.0"
+  }
+}
