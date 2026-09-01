@@ -8,5 +8,6 @@ const express_1 = __importDefault(require("express"));
 const SubastaController_1 = require("../controllers/SubastaController");
 const subastaRoutes = express_1.default.Router();
 subastaRoutes.post("/subastas", SubastaController_1.crearSubasta);
+subastaRoutes.get("/subastas", SubastaController_1.obtenerSubastas);
 exports.default = subastaRoutes;
 //# sourceMappingURL=subastaRoutes.js.map

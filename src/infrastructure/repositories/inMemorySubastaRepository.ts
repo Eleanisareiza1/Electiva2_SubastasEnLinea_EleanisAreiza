@@ -1,7 +1,7 @@
 //Estamos implementando un repositorio en memoria para almacenar subastas. Este repositorio implementa la interfaz SubastaRepository y proporciona métodos para guardar y obtener subastas.
 
-import { Subasta } from "./../../domain/Subasta";
-import { SubastaRepository } from "./../../domain/subastaRepository";
+import { Subasta } from "../../domain/Subasta";
+import { SubastaRepository } from "../../domain/subastaRepository";
 
 export class InMemorySubastaRepository
     implements SubastaRepository {

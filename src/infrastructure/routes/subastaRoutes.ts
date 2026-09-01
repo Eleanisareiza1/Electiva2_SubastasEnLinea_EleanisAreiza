@@ -2,7 +2,7 @@
 
 
 import express, { Router } from "express";
-import { crearSubasta, obtenerSubastas } from "./../controllers/SubastaController";
+import { crearSubasta, obtenerSubastas } from "../controllers/SubastaController";
 
 const subastaRoutes: Router = express.Router();
 
