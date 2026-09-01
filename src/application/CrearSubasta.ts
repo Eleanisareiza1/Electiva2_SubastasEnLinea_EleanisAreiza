@@ -1,6 +1,7 @@
-//Estamos creando un caso de uso. El controlador delega la creación de subastas a este caso de uso. El caso de uso se encarga de crear la subasta y devolverla al controlador para que este la devuelva al cliente.
+//Estamos implementando un caso de uso para crear una subasta. Este caso de uso recibe los datos necesarios para crear una subasta, crea una instancia de la entidad Subasta y la guarda en el repositorio.
 
 import { Subasta } from "../domain/Subasta";
+import { SubastaRepository } from "../domain/subastaRepository";
 
 interface CrearSubastaDTO {
     titulo: string;
@@ -11,6 +12,10 @@ interface CrearSubastaDTO {
 
 export class CrearSubasta {
 
+    constructor(
+        private readonly repository: SubastaRepository
+    ) {}
+
     ejecutar(datos: CrearSubastaDTO): Subasta {
 
         const subasta = new Subasta(
@@ -19,6 +24,8 @@ export class CrearSubasta {
             datos.incrementoMinimo,
             datos.fechaCierre
         );
+
+        this.repository.guardar(subasta);
 
         return subasta;
     }
