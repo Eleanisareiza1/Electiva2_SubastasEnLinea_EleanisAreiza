@@ -5,6 +5,8 @@ import { ConsultarSubastas } from "../../application/ConsultarSubasta";
 import { subastaRepository } from "../repositories/repositories";
 import { Request, Response } from "express";
 import { CrearSubasta } from "../../application/CrearSubasta";
+import { RegistrarPuja } from "../../application/RegistrarPuja";
+
 
 export const crearSubasta = (
     request: Request,
@@ -62,5 +64,56 @@ export const obtenerSubastas = (
         ok: true,
         data: subastas
     });
+
+};
+
+export const registrarPuja = (
+    request: Request,
+    response: Response
+) => {
+
+    try {
+
+        const { indice } =
+            request.params;
+
+        const {
+            usuarioId,
+            valor
+        } = request.body;
+
+        const casoDeUso =
+            new RegistrarPuja(
+                subastaRepository
+            );
+
+        casoDeUso.ejecutar({
+
+            indiceSubasta:
+                Number(indice),
+
+            usuarioId,
+            valor
+
+        });
+
+        return response.status(201).json({
+            ok: true,
+            message:
+                "Puja registrada correctamente"
+        });
+
+    } catch (error) {
+
+        return response.status(400).json({
+            ok: false,
+            code: "PUJA_INVALIDA",
+            message:
+                error instanceof Error
+                    ? error.message
+                    : "Error desconocido"
+        });
+
+    }
 
 };

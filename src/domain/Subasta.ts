@@ -1,4 +1,6 @@
 //Aqui estasmos creamos una entidad capaz de protegerse sola.
+import { Puja } from "./Puja";
+
 
 export class Subasta {
 
@@ -7,6 +9,7 @@ export class Subasta {
     public readonly incrementoMinimo: number;
     public readonly fechaPublicacion: Date;
     public readonly fechaCierre: Date;
+    private pujas: Puja[] = [];
 
     constructor(
         titulo: string,
@@ -62,5 +65,58 @@ export class Subasta {
         this.fechaCierre = fechaCierre;
     }
 
+    registrarPuja(
+    usuarioId: string,
+    valor: number
+): void {
+
+    const ultimaPuja =
+        this.pujas[this.pujas.length - 1];
+
+    // RN-08
+    if (!ultimaPuja) {
+
+        if (valor < this.precioBase) {
+            throw new Error(
+                "RN-08: La primera puja debe ser mayor o igual al precio base"
+            );
+        }
+
+    }
+
+    // RN-09
+    if (ultimaPuja) {
+
+        const valorMinimo =
+            ultimaPuja.valor +
+            this.incrementoMinimo;
+
+        if (valor < valorMinimo) {
+
+            throw new Error(
+                "RN-09: La puja debe superar la oferta vigente más el incremento mínimo"
+            );
+
+        }
+
+    }
+
+    // RN-10
+    if (
+        ultimaPuja &&
+        ultimaPuja.usuarioId === usuarioId
+    ) {
+
+        throw new Error(
+            "RN-10: No puede superar su propia puja vigente"
+        );
+
+    }
+
+    const nuevaPuja =
+        new Puja(usuarioId, valor);
+
+    this.pujas.push(nuevaPuja);
+
 }
-``
+}

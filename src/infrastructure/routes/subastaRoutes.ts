@@ -2,11 +2,12 @@
 
 
 import express, { Router } from "express";
-import { crearSubasta, obtenerSubastas } from "../controllers/SubastaController";
+import { crearSubasta, obtenerSubastas, registrarPuja } from "../controllers/SubastaController";
 
 const subastaRoutes: Router = express.Router();
 
 subastaRoutes.post("/subastas", crearSubasta);
 subastaRoutes.get("/subastas", obtenerSubastas);
+subastaRoutes.post("/subastas/:indice/pujas",registrarPuja);
 
 export default subastaRoutes;

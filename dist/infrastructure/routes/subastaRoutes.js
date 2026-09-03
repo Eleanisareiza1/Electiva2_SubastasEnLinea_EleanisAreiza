@@ -9,5 +9,6 @@ const SubastaController_1 = require("../controllers/SubastaController");
 const subastaRoutes = express_1.default.Router();
 subastaRoutes.post("/subastas", SubastaController_1.crearSubasta);
 subastaRoutes.get("/subastas", SubastaController_1.obtenerSubastas);
+subastaRoutes.post("/subastas/:indice/pujas", SubastaController_1.registrarPuja);
 exports.default = subastaRoutes;
 //# sourceMappingURL=subastaRoutes.js.map

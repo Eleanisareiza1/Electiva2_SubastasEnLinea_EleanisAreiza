@@ -1,9 +1,11 @@
 "use strict";
-//Aqui estasmos creamos una entidad capaz de protegerse sola.
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Subasta = void 0;
+//Aqui estasmos creamos una entidad capaz de protegerse sola.
+const Puja_1 = require("./Puja");
 class Subasta {
     constructor(titulo, precioBase, incrementoMinimo, fechaCierre) {
+        this.pujas = [];
         const fechaPublicacion = new Date();
         // RN-01 Toda subasta se publica con un precio base mayor que cero, un incremento mínimo mayor que cero y una fecha y hora de cierre
         if (precioBase <= 0) {
@@ -31,7 +33,30 @@ class Subasta {
         this.fechaPublicacion = fechaPublicacion;
         this.fechaCierre = fechaCierre;
     }
+    registrarPuja(usuarioId, valor) {
+        const ultimaPuja = this.pujas[this.pujas.length - 1];
+        // RN-08
+        if (!ultimaPuja) {
+            if (valor < this.precioBase) {
+                throw new Error("RN-08: La primera puja debe ser mayor o igual al precio base");
+            }
+        }
+        // RN-09
+        if (ultimaPuja) {
+            const valorMinimo = ultimaPuja.valor +
+                this.incrementoMinimo;
+            if (valor < valorMinimo) {
+                throw new Error("RN-09: La puja debe superar la oferta vigente más el incremento mínimo");
+            }
+        }
+        // RN-10
+        if (ultimaPuja &&
+            ultimaPuja.usuarioId === usuarioId) {
+            throw new Error("RN-10: No puede superar su propia puja vigente");
+        }
+        const nuevaPuja = new Puja_1.Puja(usuarioId, valor);
+        this.pujas.push(nuevaPuja);
+    }
 }
 exports.Subasta = Subasta;
-``;
 //# sourceMappingURL=Subasta.js.map
