@@ -13,7 +13,7 @@
     // Define cómo TypeScript buscará y resolverá las importaciones de módulos.
     // "node16" utiliza las reglas modernas de resolución de módulos de Node.js.
     "moduleResolution": "node16",
-
+    "strict": true,
     // Permite importar módulos CommonJS utilizando una sintaxis más compatible.
     // Por ejemplo: import express from "express";
     "esModuleInterop": true,

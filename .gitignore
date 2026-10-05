@@ -1,0 +1,21 @@
+# Dependencias
+node_modules/
+
+# Compilación TypeScript
+dist/
+
+# Variables de entorno
+.env
+
+# Logs
+*.log
+
+# VS Code
+.vscode/
+
+# Cobertura
+coverage/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db

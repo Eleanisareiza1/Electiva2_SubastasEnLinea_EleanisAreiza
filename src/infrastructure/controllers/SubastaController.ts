@@ -1,4 +1,4 @@
-//Estamos creando un controlador que se encarga de recibir las peticiones del cliente y devolver las respuestas. El controlador delega la creación de subastas a un caso de uso(application/CrearSubasta). 
+//Estamos creando un controlador que se encarga de recibir las peticiones del cliente y devolver las respuestas. El controlador delega la creación de subastas a un caso de uso(application). 
 //RNF-03 el controlador recibe datos, llama un caso de uso, responde pero NO toma decisiones de negocio
 
 import { ConsultarSubastas } from "../../application/ConsultarSubasta";
