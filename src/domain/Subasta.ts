@@ -189,7 +189,22 @@ export class Subasta {
 
     obtenerEstado(): EstadoSubasta {
     return this.estado;
-}
+    }
 
-// Cierra la definición de la clase Subasta.
+    cancelar(): void {
+
+    if (this.pujas.length > 0) {
+
+        throw new Error(
+            "RN-04: No se puede cancelar una subasta que ya recibió pujas"
+        );
+
+    }
+
+    this.estado =
+        EstadoSubasta.CANCELADA;
+
+    }
+
+
 }
