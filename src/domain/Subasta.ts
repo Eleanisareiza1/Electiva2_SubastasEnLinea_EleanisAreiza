@@ -4,7 +4,7 @@
 // Importa la clase Puja para registrar las ofertas realizadas.
 import { Puja } from "./Puja";
 import { Dinero } from "./valueObjects/Dinero";
-
+import { EstadoSubasta } from "./valueObjects/EstadoSubasta";
 // Declara y exporta la clase Subasta para usarla desde otros archivos.
 export class Subasta {
 
@@ -23,6 +23,7 @@ export class Subasta {
     // Fecha y hora en la que finaliza la subasta.
     public readonly fechaCierre: Date;
 
+    private estado: EstadoSubasta;
     // Lista privada de pujas realizadas en la subasta.
     // "private" impide modificarla directamente desde fuera de la clase.
     private pujas: Puja[] = [];
@@ -39,7 +40,8 @@ export class Subasta {
         incrementoMinimo: Dinero,
 
         // Recibe la fecha y hora de cierre.
-        fechaCierre: Date
+        fechaCierre: Date,
+
     ) {
 
         // Obtiene la fecha y hora actual como fecha de publicación.
@@ -63,9 +65,6 @@ export class Subasta {
             );
         }
 
-        // RN-02: valida que el cierre ocurra después de la publicación.
-        console.log("Fecha publicación:", fechaPublicacion);
-        console.log("Fecha cierre:", fechaCierre);
 
         // RN-02: valida que el cierre ocurra después de la publicación.
         if (fechaCierre <= fechaPublicacion) {
@@ -114,6 +113,8 @@ export class Subasta {
 
         // Guarda la fecha de cierre validada.
         this.fechaCierre = fechaCierre;
+
+        this.estado = EstadoSubasta.ABIERTA;
     }
 
     // Registra una nueva puja dentro de la subasta.
@@ -185,6 +186,10 @@ export class Subasta {
         // Agrega la nueva puja al listado de pujas.
         this.pujas.push(nuevaPuja);
     }
+
+    obtenerEstado(): EstadoSubasta {
+    return this.estado;
+}
 
 // Cierra la definición de la clase Subasta.
 }
