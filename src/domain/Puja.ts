@@ -3,6 +3,7 @@
 
 // Declara y exporta la clase Puja.
 // "export" permite utilizar esta clase desde otros archivos.
+import { Dinero } from "./valueObjects/Dinero";
 export class Puja {
 
     // Almacena el identificador del usuario que realizó la puja.
@@ -12,7 +13,7 @@ export class Puja {
 
     // Almacena el valor ofrecido en la puja.
     // Es público y no puede modificarse después de su creación.
-    public readonly valor: number;
+    public readonly valor: Dinero;
 
     // Almacena la fecha y hora en que se realizó la puja.
     // Es pública y no puede modificarse posteriormente.
@@ -24,7 +25,7 @@ export class Puja {
         usuarioId: string,
 
         // Recibe el valor monetario de la oferta.
-        valor: number
+        valor: Dinero
     ) {
 
         // Guarda el identificador del usuario en la propiedad usuarioId.

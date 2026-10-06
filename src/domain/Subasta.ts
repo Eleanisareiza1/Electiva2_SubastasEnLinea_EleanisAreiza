@@ -3,6 +3,7 @@
 
 // Importa la clase Puja para registrar las ofertas realizadas.
 import { Puja } from "./Puja";
+import { Dinero } from "./valueObjects/Dinero";
 
 // Declara y exporta la clase Subasta para usarla desde otros archivos.
 export class Subasta {
@@ -11,10 +12,10 @@ export class Subasta {
     public readonly titulo: string;
 
     // Precio mínimo con el que inicia la subasta.
-    public readonly precioBase: number;
+    public readonly precioBase: Dinero;
 
     // Valor mínimo que debe aumentar cada nueva puja.
-    public readonly incrementoMinimo: number;
+    public readonly incrementoMinimo: Dinero;
 
     // Fecha y hora en la que se crea la subasta.
     public readonly fechaPublicacion: Date;
@@ -32,10 +33,10 @@ export class Subasta {
         titulo: string,
 
         // Recibe el precio base de la subasta.
-        precioBase: number,
+        precioBase: Dinero,
 
         // Recibe el incremento mínimo de cada puja.
-        incrementoMinimo: number,
+        incrementoMinimo: Dinero,
 
         // Recibe la fecha y hora de cierre.
         fechaCierre: Date
@@ -45,7 +46,7 @@ export class Subasta {
         const fechaPublicacion = new Date();
 
         // RN-01: valida que el precio base sea mayor que cero.
-        if (precioBase <= 0) {
+        if (precioBase.obtenerValor() <= 0) {
 
             // Detiene la creación y muestra un mensaje de error.
             throw new Error(
@@ -54,7 +55,7 @@ export class Subasta {
         }
 
         // RN-01: valida que el incremento mínimo sea mayor que cero.
-        if (incrementoMinimo <= 0) {
+        if (incrementoMinimo.obtenerValor() <= 0) {
 
             // Detiene la creación si el incremento no es válido.
             throw new Error(
@@ -63,12 +64,16 @@ export class Subasta {
         }
 
         // RN-02: valida que el cierre ocurra después de la publicación.
+        console.log("Fecha publicación:", fechaPublicacion);
+        console.log("Fecha cierre:", fechaCierre);
+
+        // RN-02: valida que el cierre ocurra después de la publicación.
         if (fechaCierre <= fechaPublicacion) {
 
-            // Detiene la creación si la fecha de cierre no es válida.
             throw new Error(
                 "RN-02: La fecha de cierre debe ser posterior a la publicación"
             );
+
         }
 
         // Calcula la duración de la subasta en horas.
@@ -128,7 +133,8 @@ export class Subasta {
         if (!ultimaPuja) {
 
             // La primera puja debe ser igual o superior al precio base.
-            if (valor < this.precioBase) {
+            if (valor < this.precioBase.obtenerValor()
+                ) {
 
                 // Rechaza la puja si es menor al precio base.
                 throw new Error(
@@ -140,19 +146,22 @@ export class Subasta {
         // RN-09: valida las pujas posteriores a la primera.
         if (ultimaPuja) {
 
-            // Calcula el valor mínimo permitido para la nueva puja.
             const valorMinimo =
-                ultimaPuja.valor +
-                this.incrementoMinimo;
+                ultimaPuja.valor.sumar(
+                    this.incrementoMinimo
+                );
 
-            // Comprueba que la nueva puja cumpla el incremento mínimo.
-            if (valor < valorMinimo) {
+            if (
+                valor <
+                valorMinimo.obtenerValor()
+            ) {
 
-                // Rechaza la puja si no supera el valor mínimo.
                 throw new Error(
                     "RN-09: La puja debe superar la oferta vigente más el incremento mínimo"
                 );
+
             }
+
         }
 
         // RN-10: impide que un usuario supere su propia puja vigente.
@@ -169,8 +178,10 @@ export class Subasta {
 
         // Crea una nueva instancia de Puja con el usuario y el valor.
         const nuevaPuja =
-            new Puja(usuarioId, valor);
-
+            new Puja(
+                usuarioId,
+                new Dinero(valor)
+            );
         // Agrega la nueva puja al listado de pujas.
         this.pujas.push(nuevaPuja);
     }

@@ -3,7 +3,7 @@
 
 // Importa la clase Subasta desde la capa de dominio.
 import { Subasta } from "../domain/Subasta";
-
+import { Dinero } from "../domain/valueObjects/Dinero";
 // Importa el contrato del repositorio de subastas.
 import { SubastaRepository } from "../domain/subastaRepository";
 
@@ -43,8 +43,8 @@ export class CrearSubasta {
         // El constructor también valida las reglas de negocio.
         const subasta = new Subasta(
             datos.titulo,
-            datos.precioBase,
-            datos.incrementoMinimo,
+            new Dinero(datos.precioBase),
+            new Dinero(datos.incrementoMinimo),
             datos.fechaCierre
         );
 
