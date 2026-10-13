@@ -120,6 +120,9 @@ export class Subasta {
         this.estado = EstadoSubasta.ABIERTA;
     }
 
+
+        
+
     // Registra una nueva puja dentro de la subasta.
     registrarPuja(
     // Identificador del usuario que realiza la puja.
@@ -142,7 +145,7 @@ export class Subasta {
                 "RN-05: No se pueden registrar pujas en una subasta cancelada"
             );
 
-        }
+    }
         // Obtiene la última puja registrada.
         const ultimaPuja =
             this.pujas[this.pujas.length - 1];
@@ -228,6 +231,33 @@ export class Subasta {
 
     }
 
+    obtenerGanador(): Puja | null {
+
+    if (
+        this.estado !==
+        EstadoSubasta.CERRADA
+    ) {
+
+        throw new Error(
+            "RN-14: La subasta debe estar cerrada"
+        );
+
+    }
+
+    if (
+        this.pujas.length === 0
+    ) {
+
+        return null;
+
+    }
+
+    return this.pujas[
+        this.pujas.length - 1
+    ];
+
+    }
+
     cancelar(): void {
 
     if (this.pujas.length > 0) {
@@ -266,6 +296,17 @@ export class Subasta {
         throw new Error(
             "RN-13: No puede cerrarse una subasta cancelada"
         );
+
+    }
+
+    if (
+        this.pujas.length === 0
+    ) {
+
+        this.estado =
+            EstadoSubasta.DESIERTA;
+
+        return;
 
     }
 
