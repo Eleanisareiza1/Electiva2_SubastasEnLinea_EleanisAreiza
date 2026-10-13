@@ -5,6 +5,8 @@
 import { Puja } from "./Puja";
 import { Dinero } from "./valueObjects/Dinero";
 import { EstadoSubasta } from "./valueObjects/EstadoSubasta";
+import { IntentoPujaFallida } from "./IntentoPujaFallida";
+
 // Declara y exporta la clase Subasta para usarla desde otros archivos.
 export class Subasta {
 
@@ -27,7 +29,8 @@ export class Subasta {
     // Lista privada de pujas realizadas en la subasta.
     // "private" impide modificarla directamente desde fuera de la clase.
     private pujas: Puja[] = [];
-
+    private intentosFallidos: IntentoPujaFallida[] = [];
+    
     // Constructor que recibe los datos necesarios para crear una subasta.
     constructor(
         // Recibe el título de la subasta.
@@ -119,13 +122,27 @@ export class Subasta {
 
     // Registra una nueva puja dentro de la subasta.
     registrarPuja(
-        // Identificador del usuario que realiza la puja.
+    // Identificador del usuario que realiza la puja.
         usuarioId: string,
 
         // Valor ofrecido por el usuario.
         valor: number
     ): void {
+        if (
+            this.estado ===
+            EstadoSubasta.CANCELADA
+        ) {
 
+            this.registrarIntentoFallido(
+                usuarioId,
+                "RN-05: No se pueden registrar pujas en una subasta cancelada"
+            );
+
+            throw new Error(
+                "RN-05: No se pueden registrar pujas en una subasta cancelada"
+            );
+
+        }
         // Obtiene la última puja registrada.
         const ultimaPuja =
             this.pujas[this.pujas.length - 1];
@@ -134,13 +151,17 @@ export class Subasta {
         if (!ultimaPuja) {
 
             // La primera puja debe ser igual o superior al precio base.
-            if (valor < this.precioBase.obtenerValor()
-                ) {
+            if (valor < this.precioBase.obtenerValor()) {
 
-                // Rechaza la puja si es menor al precio base.
+                this.registrarIntentoFallido(
+                    usuarioId,
+                    "RN-08: La primera puja debe ser mayor o igual al precio base"
+                );
+
                 throw new Error(
                     "RN-08: La primera puja debe ser mayor o igual al precio base"
                 );
+
             }
         }
 
@@ -157,7 +178,8 @@ export class Subasta {
                 valorMinimo.obtenerValor()
             ) {
 
-                throw new Error(
+                this.registrarIntentoFallido(
+                    usuarioId,
                     "RN-09: La puja debe superar la oferta vigente más el incremento mínimo"
                 );
 
@@ -172,7 +194,8 @@ export class Subasta {
         ) {
 
             // Rechaza la puja del mismo usuario consecutivamente.
-            throw new Error(
+            this.registrarIntentoFallido(
+                usuarioId,
                 "RN-10: No puede superar su propia puja vigente"
             );
         }
@@ -191,6 +214,12 @@ export class Subasta {
     return this.estado;
     }
 
+    obtenerIntentosFallidos(): IntentoPujaFallida[] {
+
+    return this.intentosFallidos;
+
+    }
+
     cancelar(): void {
 
     if (this.pujas.length > 0) {
@@ -205,6 +234,21 @@ export class Subasta {
         EstadoSubasta.CANCELADA;
 
     }
+
+    private registrarIntentoFallido(
+    usuarioId: string,
+    motivo: string
+): void {
+
+    this.intentosFallidos.push(
+        new IntentoPujaFallida(
+            usuarioId,
+            motivo
+        )
+    );
+
+    
+}
 
 
 }
