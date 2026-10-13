@@ -183,6 +183,10 @@ export class Subasta {
                     "RN-09: La puja debe superar la oferta vigente más el incremento mínimo"
                 );
 
+                throw new Error(
+                "RN-09: La puja debe superar la oferta vigente más el incremento mínimo"
+            );
+
             }
 
         }
@@ -197,6 +201,10 @@ export class Subasta {
             this.registrarIntentoFallido(
                 usuarioId,
                 "RN-10: No puede superar su propia puja vigente"
+            );
+
+            throw new Error(
+             "RN-10: No puede superar su propia puja vigente"
             );
         }
 
@@ -235,10 +243,41 @@ export class Subasta {
 
     }
 
+    cerrar(): void {
+
+    const ahora =
+        new Date();
+
+    if (
+        ahora < this.fechaCierre
+    ) {
+
+        throw new Error(
+            "RN-13: La subasta aún no ha llegado a su fecha de cierre"
+        );
+
+    }
+
+    if (
+        this.estado ===
+        EstadoSubasta.CANCELADA
+    ) {
+
+        throw new Error(
+            "RN-13: No puede cerrarse una subasta cancelada"
+        );
+
+    }
+
+    this.estado =
+        EstadoSubasta.CERRADA;
+
+    }
+
     private registrarIntentoFallido(
-    usuarioId: string,
-    motivo: string
-): void {
+        usuarioId: string,
+        motivo: string
+    ): void {
 
     this.intentosFallidos.push(
         new IntentoPujaFallida(
@@ -248,7 +287,6 @@ export class Subasta {
     );
 
     
-}
-
+    }
 
 }
