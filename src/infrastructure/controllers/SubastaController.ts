@@ -7,6 +7,8 @@ import { Request, Response } from "express";
 import { CrearSubasta } from "../../application/CrearSubasta";
 import { RegistrarPuja } from "../../application/RegistrarPuja";
 import { CancelarSubasta } from "../../application/CancelarSubasta";
+import { CerrarSubasta } from "../../application/CerrarSubasta";
+
 
 export const crearSubasta = (
     request: Request,
@@ -142,6 +144,47 @@ export const cancelarSubasta = (
             ok: true,
             message:
                 "Subasta cancelada correctamente"
+        });
+
+    } catch (error) {
+
+        return response.status(400).json({
+            ok: false,
+            code: "SUBASTA_INVALIDA",
+            message:
+                error instanceof Error
+                    ? error.message
+                    : "Error desconocido"
+        });
+
+    }
+
+};
+
+export const cerrarSubasta = (
+    request: Request,
+    response: Response
+) => {
+
+    try {
+
+        const { indice } =
+            request.params;
+
+        const casoDeUso =
+            new CerrarSubasta(
+                subastaRepository
+            );
+
+        casoDeUso.ejecutar({
+            indiceSubasta:
+                Number(indice)
+        });
+
+        return response.status(200).json({
+            ok: true,
+            message:
+                "Subasta cerrada correctamente"
         });
 
     } catch (error) {
