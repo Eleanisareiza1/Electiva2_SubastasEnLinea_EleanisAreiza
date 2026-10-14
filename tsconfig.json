@@ -35,7 +35,9 @@
     // Indica los tipos globales que TypeScript debe cargar.
     // "node" permite reconocer elementos propios de Node.js,
     // como process, __dirname, Buffer, etc.
-    "types": ["node"],
+    "types": ["node", "jest"],
+    "isolatedModules": true,
+
 
     // Define las bibliotecas estándar de JavaScript disponibles para TypeScript.
     // "es2015" incluye funcionalidades modernas como Promise, Map, Set, etc.
