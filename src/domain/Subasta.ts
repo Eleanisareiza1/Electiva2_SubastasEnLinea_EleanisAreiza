@@ -6,6 +6,9 @@ import { Puja } from "./Puja";
 import { Dinero } from "./valueObjects/Dinero";
 import { EstadoSubasta } from "./valueObjects/EstadoSubasta";
 import { IntentoPujaFallida } from "./IntentoPujaFallida";
+import { OrdenPago } from "./OrdenPago";
+
+
 
 // Declara y exporta la clase Subasta para usarla desde otros archivos.
 export class Subasta {
@@ -13,6 +16,7 @@ export class Subasta {
     // Título o nombre de la subasta.
     public readonly titulo: string;
 
+    public readonly vendedorId: string;
     // Precio mínimo con el que inicia la subasta.
     public readonly precioBase: Dinero;
 
@@ -30,11 +34,14 @@ export class Subasta {
     // "private" impide modificarla directamente desde fuera de la clase.
     private pujas: Puja[] = [];
     private intentosFallidos: IntentoPujaFallida[] = [];
-    
+    private ganadorId: string | null = null;
+    private ordenPago: OrdenPago | null = null;
+
     // Constructor que recibe los datos necesarios para crear una subasta.
     constructor(
         // Recibe el título de la subasta.
         titulo: string,
+        vendedorId: string,
 
         // Recibe el precio base de la subasta.
         precioBase: Dinero,
@@ -104,7 +111,7 @@ export class Subasta {
 
         // Guarda el título validado en la propiedad de la clase.
         this.titulo = titulo;
-
+        this.vendedorId = vendedorId;
         // Guarda el precio base validado.
         this.precioBase = precioBase;
 
@@ -118,10 +125,9 @@ export class Subasta {
         this.fechaCierre = fechaCierre;
 
         this.estado = EstadoSubasta.ABIERTA;
-    }
-
-
         
+    }
+  
 
     // Registra una nueva puja dentro de la subasta.
     registrarPuja(
@@ -144,6 +150,20 @@ export class Subasta {
             throw new Error(
                 "RN-05: No se pueden registrar pujas en una subasta cancelada"
             );
+
+    }
+        if (
+        usuarioId === this.vendedorId
+    ) {
+
+        this.registrarIntentoFallido(
+            usuarioId,
+            "RN-07: El vendedor no puede pujar en su propia subasta"
+        );
+
+        throw new Error(
+            "RN-07: El vendedor no puede pujar en su propia subasta"
+        );
 
     }
         // Obtiene la última puja registrada.
@@ -275,6 +295,17 @@ export class Subasta {
 
     cerrar(): void {
 
+    if (
+        this.estado === EstadoSubasta.CERRADA ||
+        this.estado === EstadoSubasta.DESIERTA
+    ) {
+
+        throw new Error(
+            "RN-16: La subasta ya fue cerrada"
+        );
+
+    }
+
     const ahora =
         new Date();
 
@@ -309,6 +340,28 @@ export class Subasta {
         return;
 
     }
+
+    const pujaGanadora =
+        this.pujas[
+            this.pujas.length - 1
+        ];
+
+    this.ganadorId =
+        pujaGanadora.usuarioId;
+
+    const fechaLimite =
+        new Date();
+
+    fechaLimite.setHours(
+        fechaLimite.getHours() + 48
+    );
+
+    this.ordenPago =
+        new OrdenPago(
+            pujaGanadora.usuarioId,
+            pujaGanadora.valor.obtenerValor(),
+            fechaLimite
+        );
 
     this.estado =
         EstadoSubasta.CERRADA;

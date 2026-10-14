@@ -9,7 +9,7 @@ import { SubastaRepository } from "../domain/subastaRepository";
 
 // Define la estructura de datos necesaria para crear una subasta.
 interface CrearSubastaDTO {
-
+    vendedorId: string;
     // Título o nombre de la subasta.
     titulo: string;
 
@@ -21,6 +21,7 @@ interface CrearSubastaDTO {
 
     // Fecha y hora en que finalizará la subasta.
     fechaCierre: Date;
+    
 }
 
 // Declara y exporta la clase CrearSubasta.
@@ -43,11 +44,11 @@ export class CrearSubasta {
         // El constructor también valida las reglas de negocio.
         const subasta = new Subasta(
             datos.titulo,
+            datos.vendedorId,
             new Dinero(datos.precioBase),
             new Dinero(datos.incrementoMinimo),
             datos.fechaCierre
         );
-
         // Guarda la subasta creada en el repositorio.
         this.repository.guardar(subasta);
 

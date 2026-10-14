@@ -16,6 +16,7 @@ export const crearSubasta = (
 
     try {
         const {
+            vendedorId,
             titulo,
             precioBase,
             incrementoMinimo,
@@ -25,6 +26,7 @@ export const crearSubasta = (
         const casoDeUso = new CrearSubasta(subastaRepository);
 
         const subasta = casoDeUso.ejecutar({
+            vendedorId,
             titulo,
             precioBase,
             incrementoMinimo,
