@@ -3,7 +3,7 @@
 
 // Importa la clase InMemorySubastaRepository desde el archivo correspondiente.
 // Esta clase contiene la lógica para guardar y consultar subastas en memoria.
-import { InMemorySubastaRepository } from "./InMemorySubastaRepository";
+import { InMemorySubastaRepository } from "./MongoSubastaRepository";
 
 // Crea una constante llamada subastaRepository.
 // Instancia InMemorySubastaRepository utilizando la palabra clave "new".

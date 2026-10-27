@@ -1,9 +1,20 @@
-//Estamos configurando el servidor 
-
 import app from "./app";
+import { conectarMongo } from "./infrastructure/repositories/mongodb";
 
 const PORT: number = 5000;
 
-app.listen(PORT, () => {
-  console.log(`SERVER RUNNING AT ${PORT}`);
-});
+async function iniciarServidor() {
+
+    await conectarMongo();
+
+    app.listen(PORT, () => {
+
+        console.log(
+            `SERVER RUNNING AT ${PORT}`
+        );
+
+    });
+
+}
+
+iniciarServidor();

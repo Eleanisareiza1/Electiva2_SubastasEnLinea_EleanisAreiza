@@ -24,6 +24,7 @@
   "devDependencies": {
     "@types/express": "^5.0.6",
     "@types/jest": "^30.0.0",
+    "@types/mongoose": "^5.11.96",
     "express": "^5.2.1",
     "jest": "^30.5.2",
     "nodemon": "^3.1.14",
@@ -31,6 +32,8 @@
     "typescript": "^5.9.2"
   },
   "dependencies": {
-    "@types/node": "^26.2.0"
+    "@types/node": "^26.2.0",
+    "dotenv": "^18.0.9",
+    "mongoose": "^9.11.4"
   }
 }
