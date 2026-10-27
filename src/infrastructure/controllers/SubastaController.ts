@@ -10,7 +10,7 @@ import { CancelarSubasta } from "../../application/CancelarSubasta";
 import { CerrarSubasta } from "../../application/CerrarSubasta";
 
 
-export const crearSubasta = (
+export const crearSubasta = async (
     request: Request,
     response: Response) => {
 
@@ -25,7 +25,7 @@ export const crearSubasta = (
 
         const casoDeUso = new CrearSubasta(subastaRepository);
 
-        const subasta = casoDeUso.ejecutar({
+        const subasta = await casoDeUso.ejecutar({
             vendedorId,
             titulo,
             precioBase,
@@ -53,7 +53,7 @@ export const crearSubasta = (
 
 };
 
-export const obtenerSubastas = (
+export const obtenerSubastas = async (
     request: Request,
     response: Response
 ) => {
@@ -62,7 +62,7 @@ export const obtenerSubastas = (
         new ConsultarSubastas(subastaRepository);
 
     const subastas =
-        casoDeUso.ejecutar();
+        await casoDeUso.ejecutar();
 
     return response.status(200).json({
         ok: true,

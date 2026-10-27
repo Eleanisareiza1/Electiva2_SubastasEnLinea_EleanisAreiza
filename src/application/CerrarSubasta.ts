@@ -14,12 +14,15 @@ export class CerrarSubasta {
         SubastaRepository
     ) {}
 
-    ejecutar(
+  async  ejecutar(
         datos: CerrarSubastaDTO
-    ): void {
+    ): Promise<void> {
+
+        const subastas =
+    await this.repository.obtenerTodas();
 
         const subasta =
-            this.repository.obtenerTodas()[
+            subastas[
                 datos.indiceSubasta
             ];
 

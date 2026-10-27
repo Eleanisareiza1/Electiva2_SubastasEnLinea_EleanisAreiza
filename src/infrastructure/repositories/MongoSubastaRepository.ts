@@ -1,39 +1,63 @@
-// Indica que este archivo implementa un repositorio de subastas en memoria.
-// Los datos se almacenan temporalmente mientras la aplicación está ejecutándose.
-
-// Importa la clase o tipo Subasta desde la capa de dominio.
 import { Subasta } from "../../domain/Subasta";
-
-// Importa la interfaz que define las operaciones del repositorio.
 import { SubastaRepository } from "../../domain/subastaRepository";
+import { SubastaModel } from "./SubastaModel";
+import { Dinero } from "../../domain/valueObjects/Dinero";
 
-// Declara y exporta la clase InMemorySubastaRepository.
-// "export" permite utilizar esta clase desde otros archivos.
-export class InMemorySubastaRepository
-
-    // Indica que esta clase debe cumplir el contrato definido por SubastaRepository.
+export class MongoSubastaRepository
     implements SubastaRepository {
 
-    // Declara una propiedad privada llamada subastas.
-    // Solo puede utilizarse dentro de esta clase.
-    // Es un arreglo que almacenará objetos de tipo Subasta.
-    // Se inicializa como un arreglo vacío.
-    private subastas: Subasta[] = [];
+    async guardar(
+        subasta: Subasta
+    ): Promise<void> {
 
-    // Declara el método guardar.
-    // Recibe una subasta como parámetro.
-    // El tipo void indica que no devuelve ningún valor.
-    guardar(subasta: Subasta): void {
-        // Agrega la subasta recibida al final del arreglo subastas.
-        this.subastas.push(subasta);
+        await SubastaModel.create({
+
+            vendedorId:
+                subasta.vendedorId,
+
+            titulo:
+                subasta.titulo,
+
+            precioBase:
+                subasta.precioBase.obtenerValor(),
+
+            incrementoMinimo:
+                subasta.incrementoMinimo.obtenerValor(),
+
+            fechaPublicacion:
+                subasta.fechaPublicacion,
+
+            fechaCierre:
+                subasta.fechaCierre,
+
+            estado:
+                subasta.obtenerEstado()
+
+        });
+
     }
 
-    // Declara el método obtenerTodas.
-    // Devuelve un arreglo que contiene todas las subastas almacenadas.
-    obtenerTodas(): Subasta[] {
-        // Retorna el arreglo interno de subastas.
-        return this.subastas;
-    }
+    async obtenerTodas():
+    Promise<Subasta[]> {
 
-// Cierra la definición de la clase.
-}  
+    const documentos =
+        await SubastaModel.find();
+
+    return documentos.map(
+    (documento) =>
+        new Subasta(
+            documento.titulo!,
+            documento.vendedorId!,
+            new Dinero(
+                documento.precioBase!
+            ),
+            new Dinero(
+                documento.incrementoMinimo!
+            ),
+            documento.fechaCierre!
+        )
+);
+
+}
+
+}

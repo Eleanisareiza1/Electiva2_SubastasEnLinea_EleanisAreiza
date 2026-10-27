@@ -8,12 +8,15 @@ export class ConsultarIntentosFallidos {
         SubastaRepository
     ) {}
 
-    ejecutar(
+  async  ejecutar(
         indiceSubasta: number
     ) {
 
+        const subastas =
+    await this.repository.obtenerTodas();
+
         const subasta =
-            this.repository.obtenerTodas()[
+            subastas[
                 indiceSubasta
             ];
 

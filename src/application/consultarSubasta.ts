@@ -23,9 +23,11 @@ export class ConsultarSubastas {
     // Declara el método ejecutar.
     // Este método realiza la consulta de todas las subastas.
     // Devuelve un arreglo de objetos Subasta.
-    ejecutar(): Subasta[] {
+    async ejecutar():
+    Promise<Subasta[]>
+{
         // Solicita al repositorio todas las subastas almacenadas.
-        // Retorna el resultado al código que llamó al caso de uso.
-        return this.repository.obtenerTodas();
+        // Retorna el resultado al código que llamó al caso de use.
+        return await this.repository.obtenerTodas();
     }
 }

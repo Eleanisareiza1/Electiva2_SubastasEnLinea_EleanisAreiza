@@ -14,14 +14,17 @@ export class CancelarSubasta {
         SubastaRepository
     ) {}
 
-    ejecutar(
+  async  ejecutar(
         datos: CancelarSubastaDTO
-    ): void {
+    ): Promise<void> {
 
-        const subasta =
-            this.repository.obtenerTodas()[
-                datos.indiceSubasta
-            ];
+    const subastas =
+    await this.repository.obtenerTodas();
+
+    const subasta =
+        subastas[
+            datos.indiceSubasta
+        ];
 
         if (!subasta) {
 

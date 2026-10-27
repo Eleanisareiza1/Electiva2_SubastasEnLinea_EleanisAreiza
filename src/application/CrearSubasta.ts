@@ -38,8 +38,7 @@ export class CrearSubasta {
     // Declara el método ejecutar.
     // Recibe los datos necesarios para crear la subasta.
     // Devuelve la subasta creada.
-    ejecutar(datos: CrearSubastaDTO): Subasta {
-
+    async ejecutar(datos: CrearSubastaDTO ): Promise<Subasta> {
         // Crea una nueva instancia de la entidad Subasta.
         // El constructor también valida las reglas de negocio.
         const subasta = new Subasta(
@@ -50,8 +49,7 @@ export class CrearSubasta {
             datos.fechaCierre
         );
         // Guarda la subasta creada en el repositorio.
-        this.repository.guardar(subasta);
-
+        await this.repository.guardar(subasta);
         // Devuelve la subasta creada.
         return subasta;
     }

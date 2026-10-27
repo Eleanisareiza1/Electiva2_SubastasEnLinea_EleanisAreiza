@@ -30,19 +30,21 @@ export class RegistrarPuja {
     // Declara el método ejecutar.
     // Recibe los datos necesarios para registrar una puja.
     // No devuelve ningún valor.
-    ejecutar(
+   async  ejecutar(
         // Recibe un objeto con el índice, usuario y valor de la puja.
         datos: RegistrarPujaDTO
-    ): void {
+    ): Promise<void> {
 
         // Muestra en la consola todas las subastas almacenadas.
         // Esta línea sirve para depuración y puede eliminarse posteriormente.
         console.log(this.repository.obtenerTodas());
 
         // Obtiene la subasta ubicada en el índice recibido.
+        const subastas =
+        await this.repository.obtenerTodas();
+
         const subasta =
-            this.repository.obtenerTodas()[
-                // Utiliza el índice indicado en los datos.
+            subastas[
                 datos.indiceSubasta
             ];
 
