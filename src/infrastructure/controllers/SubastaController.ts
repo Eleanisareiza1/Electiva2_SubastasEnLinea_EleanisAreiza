@@ -8,7 +8,8 @@ import { CrearSubasta } from "../../application/CrearSubasta";
 import { RegistrarPuja } from "../../application/RegistrarPuja";
 import { CancelarSubasta } from "../../application/CancelarSubasta";
 import { CerrarSubasta } from "../../application/CerrarSubasta";
-
+import { SocketIONotificacionAdapter }from "../socket/SocketIONotificacionAdapter";
+import { obtenerSocket } from "../socket/socketServer";
 
 export const crearSubasta = async (
     request: Request,
@@ -86,9 +87,15 @@ export const registrarPuja = (
             valor
         } = request.body;
 
+        const notificaciones =
+            new SocketIONotificacionAdapter(
+                obtenerSocket()
+            );
+
         const casoDeUso =
             new RegistrarPuja(
-                subastaRepository
+                subastaRepository,
+                notificaciones
             );
 
         casoDeUso.ejecutar({

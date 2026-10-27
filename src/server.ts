@@ -1,5 +1,7 @@
 import app from "./app";
-import { conectarMongo } from "./infrastructure/repositories/mongodb";
+import { createServer } from "http";
+import { conectarMongo }from "./infrastructure/repositories/mongodb";
+import { configurarSocket } from "./infrastructure/socket/socketServer";
 
 const PORT: number = 5000;
 
@@ -7,13 +9,27 @@ async function iniciarServidor() {
 
     await conectarMongo();
 
-    app.listen(PORT, () => {
+    const servidorHttp =
+        createServer(app);
 
-        console.log(
-            `SERVER RUNNING AT ${PORT}`
-        );
+    configurarSocket(
+        servidorHttp
+    );
 
-    });
+    servidorHttp.listen(
+        PORT,
+        () => {
+
+            console.log(
+                `SERVER RUNNING AT ${PORT}`
+            );
+
+            console.log(
+                "✅ Socket.IO iniciado"
+            );
+
+        }
+    );
 
 }
 

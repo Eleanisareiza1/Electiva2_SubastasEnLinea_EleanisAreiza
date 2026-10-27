@@ -2,6 +2,7 @@
 
 // Importa la interfaz del repositorio de subastas.
 import { SubastaRepository } from "../domain/subastaRepository";
+import { NotificacionPort } from "./ports/NotificacionPort";
 
 // Define los datos necesarios para registrar una puja.
 interface RegistrarPujaDTO {
@@ -21,10 +22,8 @@ export class RegistrarPuja {
 
     // Constructor de la clase.
     constructor(
-        // Recibe el repositorio que contiene las subastas.
-        // "private" permite usarlo solo dentro de esta clase.
-        // "readonly" impide reemplazarlo después de asignarlo.
-        private readonly repository: SubastaRepository
+    private readonly repository: SubastaRepository,
+    private readonly notificaciones: NotificacionPort
     ) {}
 
     // Declara el método ejecutar.
@@ -34,10 +33,6 @@ export class RegistrarPuja {
         // Recibe un objeto con el índice, usuario y valor de la puja.
         datos: RegistrarPujaDTO
     ): Promise<void> {
-
-        // Muestra en la consola todas las subastas almacenadas.
-        // Esta línea sirve para depuración y puede eliminarse posteriormente.
-        console.log(this.repository.obtenerTodas());
 
         // Obtiene la subasta ubicada en el índice recibido.
         const subastas =
@@ -62,6 +57,12 @@ export class RegistrarPuja {
             datos.usuarioId,
 
             // Envía el valor ofrecido.
+            datos.valor
+        );
+
+        this.notificaciones
+        .notificarNuevaPuja(
+            datos.indiceSubasta,
             datos.valor
         );
     }

@@ -2,6 +2,8 @@ import { Subasta } from "../../domain/Subasta";
 import { SubastaRepository } from "../../domain/subastaRepository";
 import { SubastaModel } from "./SubastaModel";
 import { Dinero } from "../../domain/valueObjects/Dinero";
+import { EstadoSubasta } from "../../domain/valueObjects/EstadoSubasta";
+
 
 export class MongoSubastaRepository
     implements SubastaRepository {
@@ -45,7 +47,7 @@ export class MongoSubastaRepository
 
     return documentos.map(
     (documento) =>
-        new Subasta(
+        Subasta.reconstruir(
             documento.titulo!,
             documento.vendedorId!,
             new Dinero(
@@ -54,7 +56,9 @@ export class MongoSubastaRepository
             new Dinero(
                 documento.incrementoMinimo!
             ),
-            documento.fechaCierre!
+            documento.fechaPublicacion!,
+            documento.fechaCierre!,
+            documento.estado as EstadoSubasta
         )
 );
 

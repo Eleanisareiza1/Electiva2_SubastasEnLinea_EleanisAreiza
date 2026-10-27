@@ -128,7 +128,36 @@ export class Subasta {
         
     }
   
+    static reconstruir(
+        titulo: string,
+        vendedorId: string,
+        precioBase: Dinero,
+        incrementoMinimo: Dinero,
+        fechaPublicacion: Date,
+        fechaCierre: Date,
+        estado: EstadoSubasta
+    ): Subasta {
 
+        const subasta =
+            new Subasta(
+                titulo,
+                vendedorId,
+                precioBase,
+                incrementoMinimo,
+                fechaCierre
+            );
+
+        Object.assign(
+            subasta,
+            {
+                fechaPublicacion,
+                estado
+            }
+        );
+
+        return subasta;
+
+    }
     // Registra una nueva puja dentro de la subasta.
     registrarPuja(
     // Identificador del usuario que realiza la puja.

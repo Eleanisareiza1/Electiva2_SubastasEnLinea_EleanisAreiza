@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Prueba Socket.IO</title>
+</head>
+<body>
+
+    <h1>Cliente Socket.IO</h1>
+
+    <button onclick="suscribirse()">
+        Suscribirse a subasta 0
+    </button>
+
+    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+
+    <script>
+
+        const socket =
+            io("http://localhost:5000");
+
+        socket.on(
+            "connect",
+            () => {
+
+                console.log(
+                    "✅ Conectado:",
+                    socket.id
+                );
+
+            }
+        );
+
+        socket.on(
+            "nueva-puja",
+            (data) => {
+
+                console.log(
+                    "🔥 Nueva puja recibida:",
+                    data
+                );
+
+                alert(
+                    "Nueva puja: " +
+                    JSON.stringify(data)
+                );
+
+            }
+        );
+
+        function suscribirse() {
+
+            socket.emit(
+                "suscribirse-subasta",
+                0
+            );
+
+            console.log(
+                "✅ Suscrito a subasta 0"
+            );
+
+        }
+
+    </script>
+
+</body>
+</html>
