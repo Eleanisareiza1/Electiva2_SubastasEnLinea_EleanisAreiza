@@ -235,3 +235,91 @@ describe("RN-16", () => {
     );
 
 });
+
+describe("RN-12", () => {
+
+    test(
+        "registra intentos de puja rechazados",
+        () => {
+
+            const fechaCierre =
+                new Date(
+                    Date.now() + 86400000
+                );
+
+            const subasta =
+                new Subasta(
+                    "Laptop Gamer",
+                    "vendedor1",
+                    new Dinero(1000000),
+                    new Dinero(50000),
+                    fechaCierre
+                );
+
+            try {
+
+                subasta.registrarPuja(
+                    "usuario1",
+                    500000
+                );
+
+            } catch {}
+
+            expect(
+                subasta
+                    .obtenerIntentosFallidos()
+                    .length
+            ).toBe(1);
+
+        }
+    );
+
+});
+
+describe("RN-13", () => {
+
+    test(
+        "adjudica la subasta al mejor postor al cerrarse",
+        () => {
+
+            const fechaCierre =
+                new Date(
+                    Date.now() + 86400000
+                );
+
+            const subasta =
+                new Subasta(
+                    "Laptop Gamer",
+                    "vendedor1",
+                    new Dinero(1000000),
+                    new Dinero(50000),
+                    fechaCierre
+                );
+
+            subasta.registrarPuja(
+                "usuario1",
+                1000000
+            );
+
+            subasta.registrarPuja(
+                "usuario2",
+                1100000
+            );
+
+            (subasta as any).fechaCierre =
+                new Date(
+                    Date.now() - 1000
+                );
+
+            subasta.cerrar();
+
+            expect(
+                subasta.obtenerGanadorId()
+            ).toBe(
+                "usuario2"
+            );
+
+        }
+    );
+
+});

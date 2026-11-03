@@ -140,26 +140,32 @@ export class Subasta {
     ): Subasta {
 
         const subasta =
-            new Subasta(
-                titulo,
-                vendedorId,
-                precioBase,
-                incrementoMinimo,
-                fechaCierre
-            );
+            Object.create(
+                Subasta.prototype
+            ) as Subasta;
 
         Object.assign(
             subasta,
             {
+                titulo,
+                vendedorId,
+                precioBase,
+                incrementoMinimo,
                 fechaPublicacion,
+                fechaCierre,
                 estado,
-                pujas
+                pujas,
+                intentosFallidos: [],
+                ganadorId: null,
+                ordenPago: null
             }
         );
 
         return subasta;
-
     }
+
+
+
     // Registra una nueva puja dentro de la subasta.
     registrarPuja(
     // Identificador del usuario que realiza la puja.
