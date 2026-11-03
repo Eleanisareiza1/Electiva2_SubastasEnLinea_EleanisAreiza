@@ -3,7 +3,7 @@
 
 import { ConsultarSubastas } from "../../application/ConsultarSubasta";
 import { subastaRepository } from "../repositories/repositories";
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import { CrearSubasta } from "../../application/CrearSubasta";
 import { RegistrarPuja } from "../../application/RegistrarPuja";
 import { CancelarSubasta } from "../../application/CancelarSubasta";
@@ -13,7 +13,9 @@ import { obtenerSocket } from "../socket/socketServer";
 
 export const crearSubasta = async (
     request: Request,
-    response: Response) => {
+    response: Response,
+    next: NextFunction
+) => {
 
     try {
         const {
@@ -39,18 +41,9 @@ export const crearSubasta = async (
             data: subasta
         });
 
-    } catch (error) {
-
-        return response.status(400).json({
-            ok: false,
-            code: "SUBASTA_INVALIDA",
-            message:
-                error instanceof Error
-                    ? error.message
-                    : "Error desconocido"
-        });
-
-    }
+    } catch (error) {next(error);
+        
+     }
 
 };
 
@@ -72,10 +65,12 @@ export const obtenerSubastas = async (
 
 };
 
-export const registrarPuja = (
+export const registrarPuja = async (
     request: Request,
-    response: Response
+    response: Response,
+    next: NextFunction
 ) => {
+
 
     try {
 
@@ -98,7 +93,7 @@ export const registrarPuja = (
                 notificaciones
             );
 
-        casoDeUso.ejecutar({
+        await casoDeUso.ejecutar({
 
             indiceSubasta:
                 Number(indice),
@@ -116,22 +111,14 @@ export const registrarPuja = (
 
     } catch (error) {
 
-        return response.status(400).json({
-            ok: false,
-            code: "PUJA_INVALIDA",
-            message:
-                error instanceof Error
-                    ? error.message
-                    : "Error desconocido"
-        });
-
-    }
+        next(error);}
 
 };
 
-export const cancelarSubasta = (
+export const cancelarSubasta = async (
     request: Request,
-    response: Response
+    response: Response,
+    next: NextFunction
 ) => {
 
     try {
@@ -144,7 +131,7 @@ export const cancelarSubasta = (
                 subastaRepository
             );
 
-        casoDeUso.ejecutar({
+        await casoDeUso.ejecutar({
             indiceSubasta:
                 Number(indice)
         });
@@ -155,24 +142,14 @@ export const cancelarSubasta = (
                 "Subasta cancelada correctamente"
         });
 
-    } catch (error) {
-
-        return response.status(400).json({
-            ok: false,
-            code: "SUBASTA_INVALIDA",
-            message:
-                error instanceof Error
-                    ? error.message
-                    : "Error desconocido"
-        });
-
-    }
+    } catch (error) {next(error);}
 
 };
 
-export const cerrarSubasta = async(
+export const cerrarSubasta = async (
     request: Request,
-    response: Response
+    response: Response,
+    next: NextFunction
 ) => {
 
     try {
@@ -191,7 +168,7 @@ export const cerrarSubasta = async(
                 notificaciones
             );
 
-      await casoDeUso.ejecutar({
+        await casoDeUso.ejecutar({
             indiceSubasta:
                 Number(indice)
         });
@@ -204,14 +181,7 @@ export const cerrarSubasta = async(
 
     } catch (error) {
 
-        return response.status(400).json({
-            ok: false,
-            code: "SUBASTA_INVALIDA",
-            message:
-                error instanceof Error
-                    ? error.message
-                    : "Error desconocido"
-        });
+        next(error);
 
     }
 
