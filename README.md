@@ -222,24 +222,30 @@ La duración de la subasta debe ser:
 
 ## Gestión de Subasta
 
-## RN-04
+### RN-04
 No se puede cancelar una subasta que ya haya recibido pujas.
 
-## RN-05
+### RN-05
 No se pueden registrar pujas en una subasta cancelada.
 
-## RN-13
+### RN-13
 Una subasta solo puede cerrarse cuando ha llegado su fecha de cierre.
 
-## RN-14
-El ganador únicamente puede determinarse cuando la subasta ha sido cerrada.
+### RN-12
+Toda puja rechazada debe registrarse como intento fallido junto con el motivo del rechazo.
 
-## RN-16
+### RN-14
+Una subasta que llega a su fecha de cierre sin haber recibido ninguna puja se declara desierta y no genera obligación de pago.
+
+### RN-15
+Cuando una subasta se adjudica, se genera una orden de pago para el ganador con un plazo de cuarenta y ocho horas.
+
+### RN-16
 Una subasta no puede cerrarse más de una vez.
 
 ## Gestión de Pujas
 
-## RN-07
+### RN-07
 El vendedor no puede pujar sobre su propia subasta. 
 
 ### RN-08
@@ -255,7 +261,7 @@ Un usuario no puede superar su propia puja cuando ya es el mejor postor de la su
 
 ## Reglas Monetarias
 
-## RN-21
+### RN-21
 Los valores monetarios:
 - No pueden ser negativos.
 - No pueden contener valores decimales
@@ -476,6 +482,32 @@ npm run build
 Iniciar la aplicación: npm run dev
 
 Servidor disponible en: http://localhost:5000
+
+# Estrategia de Ramas
+
+El desarrollo del proyecto se realizó utilizando ramas de trabajo para aislar cambios antes de integrarlos a la rama principal.
+
+Ejemplo:
+
+- main: rama principal y estable.
+- feat/persistencia-mongodb: implementación de persistencia con MongoDB Atlas y evolución de funcionalidades asociadas.
+
+Esta estrategia permitió desarrollar nuevas características sin afectar la estabilidad de la aplicación.
+
+# Convención de Commits
+
+Se utilizaron mensajes descriptivos siguiendo el formato:
+
+feat: incorporación de nuevas funcionalidades
+fix: corrección de errores
+refactor: mejoras internas sin modificar comportamiento
+docs: actualización de documentación
+
+Ejemplos:
+
+feat(realtime): implementar persistencia y eventos en tiempo real
+fix(domain): corregir reconstruccion de subastas desde mongodb
+docs: actualizar README para entrega 2
 
 # Resumen de Reglas Implementadas
 - RN-01
