@@ -13,15 +13,32 @@
 **Integrante:** - Eleanis Areiza López
 
 # Estado Académico
-Entrega 1: Modelado del dominio y recursos iniciales de la API en desarrollo.
 
+Entrega 1: Modelado del dominio y recursos iniciales de la API.
+
+Entrega 2: API completa con persistencia real mediante MongoDB Atlas y comunicación en tiempo real mediante Socket.IO.
 ---
 
 ## Descripción del Proyecto
 
-La Plataforma de Subastas en Línea permite publicar artículos para ser ofertados por usuarios registrados mediante un mecanismo de subasta.
-Actualmente el proyecto implementa la primera fase del sistema, enfocada en el modelado del dominio y en los recursos principales de la API.
-Las reglas de negocio son ejecutadas dentro del dominio siguiendo los principios de Arquitectura Hexagonal, garantizando que el modelo de negocio permanezca independiente de la infraestructura y de los mecanismos de entrega HTTP.
+La Plataforma de Subastas en Línea permite la publicación y gestión de subastas, el registro de pujas por parte de los usuarios y la difusión de eventos en tiempo real mediante WebSockets.
+
+El sistema fue construido siguiendo los principios de Arquitectura Hexagonal, manteniendo el dominio desacoplado de los mecanismos de persistencia, transporte y comunicación.
+
+Actualmente la aplicación ofrece:
+
+- Creación de subastas.
+- Consulta de subastas.
+- Registro de pujas.
+- Cancelación de subastas.
+- Cierre de subastas.
+- Persistencia real mediante MongoDB Atlas.
+- Comunicación en tiempo real mediante Socket.IO.
+- Notificaciones de nuevas pujas.
+- Notificaciones de usuarios superados.
+- Middleware global para manejo de errores.
+- Consulta de intentos de puja fallidos.
+- Generación de órdenes de pago para el ganador.
 
 ---
 
@@ -45,11 +62,17 @@ La intención principal es mantener las reglas del negocio independientes de fra
 
 Contiene las entidades, puertos y reglas de negocio.
 
-Ruta: src/domain
 Archivos:
+
 Subasta.ts
 Puja.ts
+OrdenPago.ts
+IntentoPujaFallida.ts
 subastaRepository.ts
+
+valueObjects/
+├── Dinero.ts
+└── EstadoSubasta.ts
 
 Responsabilidades:
 
@@ -66,9 +89,16 @@ Contiene los casos de uso.
 
 Ruta:src/application
 Archivos:
+
 CrearSubasta.ts
 ConsultarSubasta.ts
+ConsultarIntentosFallidos.ts
 RegistrarPuja.ts
+CancelarSubasta.ts
+CerrarSubasta.ts
+
+ports/
+└── NotificacionPort.ts
 
 
 Responsabilidades:
@@ -86,10 +116,25 @@ Contiene los adaptadores de entrada y salida.
 
 Ruta:src/infrastructure
 Archivos:
-controllers
-repositories
-routes
 
+controllers/
+├── SubastaController.ts
+
+repositories/
+├── mongodb.ts
+├── MongoSubastaRepository.ts
+├── repositories.ts
+└── SubastaModel.ts
+
+middlewares/
+└── errorHandler.ts
+
+routes/
+└── subastaRoutes.ts
+
+socket/
+├── socketServer.ts
+└── SocketIONotificacionAdapter.ts
 
 Responsabilidades:
 
@@ -106,25 +151,48 @@ Responsabilidades:
 src
 │
 ├── application
-│   ├── ConsultarSubasta.ts
+│   ├── ports
+│   │   └── NotificacionPort.ts
+│   │
 │   ├── CrearSubasta.ts
-│   └── RegistrarPuja.ts
+│   ├── ConsultarSubasta.ts
+│   ├── ConsultarIntentosFallidos.ts
+│   ├── RegistrarPuja.ts
+│   ├── CancelarSubasta.ts
+│   └── CerrarSubasta.ts
 │
 ├── domain
-│   ├── Puja.ts
+│   ├── valueObjects
+│   │   ├── Dinero.ts
+│   │   └── EstadoSubasta.ts
+│   │
 │   ├── Subasta.ts
+│   ├── Puja.ts
+│   ├── OrdenPago.ts
+│   ├── IntentoPujaFallida.ts
 │   └── subastaRepository.ts
 │
 ├── infrastructure
 │   ├── controllers
 │   │   └── SubastaController.ts
 │   │
-│   ├── repositories
-│   │   ├── InMemorySubastaRepository.ts
-│   │   └── repositories.ts
+│   ├── middlewares
+│   │   └── errorHandler.ts
 │   │
-│   └── routes
-│       └── subastaRoutes.ts
+│   ├── repositories
+│   │   ├── mongodb.ts
+│   │   ├── MongoSubastaRepository.ts
+│   │   ├── repositories.ts
+│   │   └── SubastaModel.ts
+│   │
+│   ├── routes
+│   │   └── subastaRoutes.ts
+│   │
+│   └── socket
+│       ├── socketServer.ts
+│       └── SocketIONotificacionAdapter.ts
+│
+├── tests
 │
 ├── app.ts
 └── server.ts
@@ -152,7 +220,27 @@ La duración de la subasta debe ser:
 
 ---
 
+## Gestión de Subasta
+
+## RN-04
+No se puede cancelar una subasta que ya haya recibido pujas.
+
+## RN-05
+No se pueden registrar pujas en una subasta cancelada.
+
+## RN-13
+Una subasta solo puede cerrarse cuando ha llegado su fecha de cierre.
+
+## RN-14
+El ganador únicamente puede determinarse cuando la subasta ha sido cerrada.
+
+## RN-16
+Una subasta no puede cerrarse más de una vez.
+
 ## Gestión de Pujas
+
+## RN-07
+El vendedor no puede pujar sobre su propia subasta. 
 
 ### RN-08
 La primera puja debe ser mayor o igual al precio base de la subasta.
@@ -164,6 +252,13 @@ Toda puja posterior debe superar la oferta vigente más el incremento mínimo de
 Un usuario no puede superar su propia puja cuando ya es el mejor postor de la subasta.
 
 ---
+
+## Reglas Monetarias
+
+## RN-21
+Los valores monetarios:
+- No pueden ser negativos.
+- No pueden contener valores decimales
 
 # Recursos de la API
 
@@ -181,15 +276,12 @@ json
   "fechaCierre": "2026-09-15T12:00:00"
 }
 
-
 ---
 
 ## Consultar Subastas
 
 **Endpoint**
 GET http://localhost:5000/api/v1/subastas
-
-
 
 ---
 
@@ -206,35 +298,156 @@ json
   "valor": 1000000
 }
 
+
+## Cancelar Subasta
+
+**Endpoint**
+
+PATCH http://localhost:5000/api/v1/subastas/:indice/cancelar
+
+Permite cancelar una subasta que aún no ha recibido pujas.
+
+## Cerrar Subasta
+
+**Endpoint**
+
+PATCH http://localhost:5000/api/v1/subastas/:indice/cerrar
+
+Permite cerrar una subasta cuando se cumplen las condiciones definidas por las reglas del negocio.
+
+## Consultar Intentos Fallidos
+
+**Endpoint**
+
+GET /api/v1/subastas/:indice/intentos-fallidos
+
+Permite consultar los intentos de puja rechazados y sus motivos.
+
+
+
 ---
 # Casos de Uso Implementados
 
 - CrearSubasta
-- ConsultarSubastas
+- ConsultarSubasta
+- ConsultarIntentosFallidos
 - RegistrarPuja
+- CancelarSubasta
+- CerrarSubasta
+
+
+# Value Objects
+
+## Dinero
+
+Representa valores monetarios dentro del dominio.
+
+Restricciones:
+
+- No permite valores negativos.
+- No permite decimales.
+
+## EstadoSubasta
+
+Representa los posibles estados de una subasta:
+
+- ABIERTA
+- CANCELADA
+- CERRADA
+- DESIERTA
+
 
 # Persistencia
 
-La primera entrega utiliza persistencia en memoria mediante la implementación:
+La aplicación utiliza persistencia real mediante MongoDB Atlas.
 
-Adaptador :InMemorySubastaRepository
+Adaptador:
 
-Esta implementación se encuentra detrás del puerto:
+MongoSubastaRepository
 
-Puerto : SubastaRepository 
+Tecnología utilizada:
 
-Gracias a este diseño es posible reemplazar la persistencia por una base de datos real sin modificar la capa de dominio ni los casos de uso.
+- MongoDB Atlas
+- Mongoose
 
+Puerto:
+
+SubastaRepository
+
+Gracias a la Arquitectura Hexagonal fue posible sustituir la implementación inicial en memoria por MongoDB sin modificar las entidades del dominio ni los casos de uso.
+
+La persistencia permite almacenar:
+
+- Subastas
+- Pujas
+- Intentos de puja fallidos
+- Estados de subasta
+- Ganadores
+- Órdenes de pago
 ---
+# Comunicación en Tiempo Real
+
+La aplicación utiliza Socket.IO para notificar cambios importantes a los clientes conectados.
+
+Los eventos son emitidos a través del puerto:
+
+NotificacionPort
+
+e implementados mediante:
+
+SocketIONotificacionAdapter
+
+Esto permite mantener desacoplada la lógica de negocio de la tecnología de comunicación utilizada.
+
+## Eventos Implementados
+
+### suscribirse-subasta
+
+Permite que un cliente se una a la sala de una subasta específica.
+
+### nueva-puja
+
+Se emite cuando una puja válida es registrada correctamente.
+
+### usuario-superado
+
+Se emite cuando un usuario deja de ser el líder de una subasta.
+
+### subasta-cerrada
+
+Se emite cuando una subasta pasa al estado cerrada.
 
 # Tecnologías Utilizadas
 
 - Node.js
-- Express.js
 - TypeScript
+- Express.js
+- MongoDB Atlas
+- Mongoose
+- Socket.IO
+- Jest
+
+# Middleware Global 
+
+La aplicación implementa un middleware global para el manejo centralizado de errores. 
+
+Archivo: errorHandler.ts 
+
+Su responsabilidad es capturar excepciones de la aplicación y devolver respuestas HTTP consistentes al cliente.
+
+# Variables de Entorno
+
+El proyecto utiliza un archivo '.env'.
+
+Ejemplo:
+
+```env
+PORT=5000
+MONGODB_URI=tu_cadena_de_conexion
+```
+El archivo `.env` no debe almacenarse en el repositorio.
 
 ---
-
 # Instalación
 
 1. Clonar el repositorio: git clone URL_DEL_REPOSITORIO
@@ -248,8 +461,15 @@ Gracias a este diseño es posible reemplazar la persistencia por una base de dat
 
 ---
 
+# Pruebas
+
+Ejecutar:
+npm test
+
+
 # Compilación
 npm run build
+
 
 # Ejecución
 
@@ -257,14 +477,20 @@ Iniciar la aplicación: npm run dev
 
 Servidor disponible en: http://localhost:5000
 
-# Reglas de Negocio Implementadas
-
+# Resumen de Reglas Implementadas
 - RN-01
 - RN-02
 - RN-03
+- RN-04
+- RN-05
+- RN-07
 - RN-08
 - RN-09
 - RN-10
+- RN-13
+- RN-14
+- RN-16
+- RN-21
 
 
 
