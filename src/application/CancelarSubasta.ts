@@ -1,6 +1,7 @@
 import { SubastaRepository }
 from "../domain/subastaRepository";
 
+// Datos necesarios para identificar la subasta que se desea cancelar.
 interface CancelarSubastaDTO {
 
     indiceSubasta: number;
@@ -14,6 +15,7 @@ export class CancelarSubasta {
         SubastaRepository
     ) {}
 
+  // Recupera la subasta y delega la regla de cancelación a la entidad.
   async  ejecutar(
         datos: CancelarSubastaDTO
     ): Promise<void> {

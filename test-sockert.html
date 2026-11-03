@@ -6,8 +6,10 @@
 </head>
 <body>
 
+    <!-- Página mínima para comprobar la conexión y las notificaciones de una subasta. -->
     <h1>Cliente Socket.IO</h1>
 
+    <!-- Al pulsarlo, el cliente se une al canal de la subasta con índice 0. -->
     <button onclick="suscribirse()">
         Suscribirse a subasta 0
     </button>
@@ -16,9 +18,11 @@
 
     <script>
 
+        // Abre la conexión en tiempo real con el servidor local de Socket.IO.
         const socket =
             io("http://localhost:5000");
 
+        // Informa en la consola cuando la conexión queda establecida.
         socket.on(
             "connect",
             () => {
@@ -31,6 +35,7 @@
             }
         );
 
+        // Muestra en consola y en una alerta las nuevas pujas del canal suscrito.
         socket.on(
             "nueva-puja",
             (data) => {
@@ -49,6 +54,7 @@
             
         );
 
+        // Avisa al cliente cuando otro participante supera la puja de un usuario.
         socket.on(
             "usuario-superado",
             (data) => {
@@ -66,6 +72,7 @@
             }
         );
 
+        // Informa cuando la subasta a la que está suscrito ha sido cerrada.
         socket.on(
             "subasta-cerrada",
             (data) => {
@@ -83,6 +90,7 @@
             }
         );
 
+        // Solicita al servidor unirse a la sala de Socket.IO de la subasta 0.
         function suscribirse() {
 
             socket.emit(

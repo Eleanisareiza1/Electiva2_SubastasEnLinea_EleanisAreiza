@@ -1,5 +1,4 @@
-// Representa una oferta realizada por un usuario
-// dentro de una subasta.
+// Representa una oferta inmutable asociada a un usuario, importe y fecha.
 
 // Declara y exporta la clase Puja.
 // "export" permite utilizar esta clase desde otros archivos.
@@ -38,6 +37,7 @@ export class Puja {
         this.fecha = new Date();
     }
 
+    // Restaura una puja persistida conservando su fecha original.
     static reconstruir(
         usuarioId: string,
         valor: Dinero,

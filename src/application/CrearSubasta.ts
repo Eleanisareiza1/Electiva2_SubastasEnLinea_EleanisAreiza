@@ -1,5 +1,4 @@
-// Define el caso de uso encargado de crear una nueva subasta.
-// Recibe los datos, crea la entidad y la guarda en el repositorio.
+// Caso de uso que transforma los datos de entrada en una entidad y la persiste.
 
 // Importa la clase Subasta desde la capa de dominio.
 import { Subasta } from "../domain/Subasta";
@@ -7,7 +6,7 @@ import { Dinero } from "../domain/valueObjects/Dinero";
 // Importa el contrato del repositorio de subastas.
 import { SubastaRepository } from "../domain/subastaRepository";
 
-// Define la estructura de datos necesaria para crear una subasta.
+// Datos requeridos para crear una subasta desde la capa de aplicación.
 interface CrearSubastaDTO {
     vendedorId: string;
     // Título o nombre de la subasta.
@@ -35,9 +34,7 @@ export class CrearSubasta {
         private readonly repository: SubastaRepository
     ) {}
 
-    // Declara el método ejecutar.
-    // Recibe los datos necesarios para crear la subasta.
-    // Devuelve la subasta creada.
+    // Construye la entidad (que aplica sus validaciones), la guarda y la devuelve.
     async ejecutar(datos: CrearSubastaDTO ): Promise<Subasta> {
         // Crea una nueva instancia de la entidad Subasta.
         // El constructor también valida las reglas de negocio.

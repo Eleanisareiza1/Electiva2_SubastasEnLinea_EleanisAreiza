@@ -1,13 +1,13 @@
-// Define un caso de uso encargado de registrar una puja en una subasta.
+// Caso de uso que valida y persiste una puja, y notifica los cambios relevantes.
 
 // Importa la interfaz del repositorio de subastas.
 import { SubastaRepository } from "../domain/subastaRepository";
 import { NotificacionPort } from "./ports/NotificacionPort";
 
-// Define los datos necesarios para registrar una puja.
+// Datos de entrada necesarios para localizar la subasta y registrar una oferta.
 interface RegistrarPujaDTO {
 
-    // Indica la posición de la subasta dentro del arreglo.
+    // Posición de la subasta en la colección devuelta por el repositorio.
     indiceSubasta: number;
 
     // Identifica al usuario que realiza la puja.
@@ -26,9 +26,7 @@ export class RegistrarPuja {
     private readonly notificaciones: NotificacionPort
     ) {}
 
-    // Declara el método ejecutar.
-    // Recibe los datos necesarios para registrar una puja.
-    // No devuelve ningún valor.
+    // Registra la oferta aceptada y emite eventos si cambian el liderazgo o la puja.
    async  ejecutar(
         // Recibe un objeto con el índice, usuario y valor de la puja.
         datos: RegistrarPujaDTO
@@ -50,9 +48,10 @@ export class RegistrarPuja {
             throw new Error("Subasta no encontrada");
         }
         
+        // Conserva el liderazgo previo para detectar si otro usuario fue superado.
         const liderAnterior = subasta.obtenerUltimaPuja();
         // Solicita a la entidad Subasta que registre la puja.
-        // La entidad se encarga de validar las reglas de negocio.
+        // La entidad valida las reglas de negocio antes de aceptar la oferta.
        
 
         subasta.registrarPuja(
@@ -64,12 +63,14 @@ export class RegistrarPuja {
         await this.repository.guardar(
             subasta
         );
+        // Si el liderazgo cambió, notifica al usuario cuya oferta dejó de ser la mayor.
         if (
             liderAnterior &&
             liderAnterior.usuarioId !==
             datos.usuarioId
         ) {
 
+            // Publica la oferta registrada a los clientes suscritos a esta subasta.
             this.notificaciones
                 .notificarUsuarioSuperado(
                     datos.indiceSubasta,
@@ -87,4 +88,3 @@ export class RegistrarPuja {
         );
     }
 }
-

@@ -1,6 +1,7 @@
 import { Server } from "socket.io"; // biblioteca de JavaScript que permite la comunicación bidireccional en tiempo real entre un servidor y clientes.
 import { NotificacionPort } from "../../application/ports/NotificacionPort";
 
+// Implementa el puerto de notificaciones de aplicación usando salas de Socket.IO.
 export class SocketIONotificacionAdapter
     implements NotificacionPort {
 
@@ -8,6 +9,7 @@ export class SocketIONotificacionAdapter
         private readonly io: Server
     ) {}
 
+    // Emite el importe de una nueva puja a los clientes de la sala correspondiente.
     notificarNuevaPuja(
         indiceSubasta: number,
         valor: number
@@ -31,6 +33,7 @@ export class SocketIONotificacionAdapter
 
     }
 
+    // Avisa al usuario indicado que otra oferta ha tomado el liderazgo.
     notificarUsuarioSuperado(
     indiceSubasta: number,
     usuarioId: string
@@ -50,6 +53,7 @@ export class SocketIONotificacionAdapter
 
     }
 
+    // Comunica el cierre a todos los clientes suscritos a la subasta.
     notificarSubastaCerrada(
         indiceSubasta: number
     ): void {

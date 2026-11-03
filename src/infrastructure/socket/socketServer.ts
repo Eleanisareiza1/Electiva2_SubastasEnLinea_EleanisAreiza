@@ -1,7 +1,9 @@
 import { Server } from "socket.io";
 
+// Mantiene la instancia de Socket.IO para reutilizarla al enviar notificaciones.
 let io: Server;
 
+// Inicializa Socket.IO en el servidor HTTP y permite a los clientes unirse a salas.
 export function configurarSocket(
     servidor: any
 ): Server {
@@ -50,6 +52,7 @@ export function configurarSocket(
 
 export function obtenerSocket(): Server {
 
+    // Proporciona la instancia configurada a controladores y adaptadores de notificación.
     return io;
 
 }

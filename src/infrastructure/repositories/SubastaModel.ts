@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 
+// Esquemas MongoDB para las pujas, intentos fallidos, orden de pago y subasta.
 const PujaSchema =
     new mongoose.Schema({
 

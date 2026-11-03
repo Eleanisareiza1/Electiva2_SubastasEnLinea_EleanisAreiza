@@ -1,5 +1,6 @@
 import { Request,   Response,   NextFunction} from "express";
 
+// Registra los errores recibidos por Express y responde con el formato común de la API.
 export function errorHandler(
     error: Error,
     request: Request,

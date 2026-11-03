@@ -1,5 +1,5 @@
-//Estamos creando un controlador que se encarga de recibir las peticiones del cliente y devolver las respuestas. El controlador delega la creación de subastas a un caso de uso(application). 
-//RNF-03 el controlador recibe datos, llama un caso de uso, responde pero NO toma decisiones de negocio
+// Adapta las solicitudes HTTP de subastas a los casos de uso y devuelve sus resultados.
+// Mantiene las reglas de negocio en la capa de aplicación y en las entidades de dominio.
 
 import { ConsultarSubastas } from "../../application/ConsultarSubasta";
 import { subastaRepository } from "../repositories/repositories";
@@ -17,6 +17,7 @@ export const crearSubasta = async (
     next: NextFunction
 ) => {
 
+    // Traduce los datos recibidos en el cuerpo de la solicitud y delega la creación.
     try {
         const {
             vendedorId,
@@ -52,6 +53,7 @@ export const obtenerSubastas = async (
     response: Response
 ) => {
 
+    // Consulta todas las subastas mediante el caso de uso correspondiente.
     const casoDeUso =
         new ConsultarSubastas(subastaRepository);
 
@@ -74,6 +76,7 @@ export const registrarPuja = async (
 
     try {
 
+        // Obtiene el índice de la ruta y los datos de la puja enviada por el cliente.
         const { indice } =
             request.params;
 
@@ -87,6 +90,7 @@ export const registrarPuja = async (
                 obtenerSocket()
             );
 
+        // Registra la puja; el caso de uso persiste el cambio y emite notificaciones.
         const casoDeUso =
             new RegistrarPuja(
                 subastaRepository,
@@ -123,6 +127,7 @@ export const cancelarSubasta = async (
 
     try {
 
+        // Delega la cancelación usando el índice especificado en la ruta.
         const { indice } =
             request.params;
 
@@ -154,6 +159,7 @@ export const cerrarSubasta = async (
 
     try {
 
+        // Delega el cierre y prepara el adaptador para notificar a los clientes conectados.
         const { indice } =
             request.params;
 

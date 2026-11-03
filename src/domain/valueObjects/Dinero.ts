@@ -1,3 +1,4 @@
+// Objeto de valor monetario que valida importes enteros no negativos y permite sumarlos.
 export class Dinero {
 
     private readonly valor: number;
@@ -19,10 +20,12 @@ export class Dinero {
         this.valor = valor;
     }
 
+    // Devuelve el importe numérico encapsulado.
     obtenerValor(): number {
         return this.valor;
     }
 
+    // Suma otro importe y devuelve un nuevo objeto de valor.
     sumar(
         otroDinero: Dinero
     ): Dinero {

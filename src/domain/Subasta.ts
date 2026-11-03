@@ -1,5 +1,5 @@
-// Define una entidad de dominio que representa una subasta.
-// La entidad contiene sus propios datos y reglas de negocio.
+// Entidad central de la subasta: conserva sus datos y aplica las reglas de pujas,
+// cancelación, cierre, adjudicación y registro de intentos fallidos.
 
 // Importa la clase Puja para registrar las ofertas realizadas.
 import { Puja } from "./Puja";
@@ -128,6 +128,7 @@ export class Subasta {
         
     }
   
+    // Restaura una subasta existente sin volver a ejecutar las validaciones de creación.
     static reconstruir(
     titulo: string,
     vendedorId: string,
@@ -166,7 +167,7 @@ export class Subasta {
 
 
 
-    // Registra una nueva puja dentro de la subasta.
+    // Valida las reglas de participación y agrega la puja aceptada al historial.
     registrarPuja(
     // Identificador del usuario que realiza la puja.
         usuarioId: string,
@@ -203,7 +204,7 @@ export class Subasta {
         );
 
     }
-        // Obtiene la última puja registrada.
+        // La última oferta determina tanto el importe mínimo como el liderazgo actual.
         const ultimaPuja =
             this.pujas[this.pujas.length - 1];
 
@@ -278,16 +279,19 @@ export class Subasta {
         this.pujas.push(nuevaPuja);
     }
 
+    // Expone el estado actual sin permitir modificarlo desde fuera de la entidad.
     obtenerEstado(): EstadoSubasta {
     return this.estado;
     }
 
+    // Devuelve los intentos rechazados registrados durante la vida de la entidad.
     obtenerIntentosFallidos(): IntentoPujaFallida[] {
 
     return this.intentosFallidos;
 
     }
 
+    // Solo permite consultar la puja ganadora cuando la subasta ya terminó.
     obtenerGanador(): Puja | null {
 
     if (
@@ -315,6 +319,7 @@ export class Subasta {
 
     }
 
+    // Devuelve la oferta vigente, o null si todavía no hay pujas.
     obtenerUltimaPuja(): Puja | null {
 
         if (
@@ -331,22 +336,26 @@ export class Subasta {
 
     }
 
+    // Expone las pujas para consulta y persistencia.
     obtenerPujas(): Puja[] {
 
     return this.pujas;
 
     }
 
+    // Devuelve el identificador adjudicado al cierre, si existe.
     obtenerGanadorId(): string | null {
 
     return this.ganadorId;
 
     }
 
+    // Devuelve la orden de pago generada para la puja ganadora, si existe.
     obtenerOrdenPago():OrdenPago | null {
     return this.ordenPago;
     }
 
+    // Cancela la subasta únicamente mientras no haya recibido pujas.
     cancelar(): void {
 
     if (this.pujas.length > 0) {
@@ -362,6 +371,8 @@ export class Subasta {
 
     }
 
+    // Finaliza la subasta: la declara desierta o adjudica la última puja y crea
+    // una orden de pago con un plazo de 48 horas.
     cerrar(): void {
 
     if (
@@ -437,6 +448,7 @@ export class Subasta {
 
     }
 
+    // Conserva el motivo de una puja rechazada para su consulta posterior.
     private registrarIntentoFallido(
         usuarioId: string,
         motivo: string

@@ -1,9 +1,10 @@
 import { Subasta } from "../domain/Subasta";
 import { Dinero } from "../domain/valueObjects/Dinero";
 
-
+// Verifica las reglas de negocio de pujas, cancelación, cierre y adjudicación.
 describe("RN-08", () => {
 
+    // La primera oferta no puede ser inferior al precio base.
     test(
         "rechaza primera puja inferior al precio base",
         () => {
@@ -41,6 +42,7 @@ describe("RN-08", () => {
 
 describe("RN-07", () => {
 
+    // El vendedor no puede participar como postor en su propia subasta.
     test(
         "rechaza al vendedor pujando en su propia subasta",
         () => {
@@ -77,6 +79,7 @@ describe("RN-07", () => {
 
 describe("RN-09", () => {
 
+    // Las pujas posteriores deben respetar el incremento mínimo configurado.
     test(
         "rechaza una puja que no supera el incremento minimo",
         () => {
@@ -118,6 +121,7 @@ describe("RN-09", () => {
 
 describe("RN-10", () => {
 
+    // Un usuario no puede volver a ofertar mientras su puja sea la vigente.
     test(
         "rechaza que un usuario se supere a si mismo",
         () => {
@@ -159,6 +163,7 @@ describe("RN-10", () => {
 
 describe("RN-14", () => {
 
+    // Una subasta vencida sin ofertas puede cerrarse sin lanzar una excepción.
     test(
         "declara desierta una subasta sin pujas",
         () => {
@@ -193,6 +198,7 @@ describe("RN-14", () => {
 
 describe("RN-16", () => {
 
+    // Una vez cerrada, la subasta no admite un segundo cierre.
     test(
         "impide cerrar una subasta dos veces",
         () => {
@@ -238,6 +244,7 @@ describe("RN-16", () => {
 
 describe("RN-12", () => {
 
+    // Los rechazos de puja quedan almacenados como intentos fallidos.
     test(
         "registra intentos de puja rechazados",
         () => {
@@ -278,6 +285,7 @@ describe("RN-12", () => {
 
 describe("RN-13", () => {
 
+    // Al cerrar una subasta con ofertas, gana el usuario de la puja más reciente.
     test(
         "adjudica la subasta al mejor postor al cerrarse",
         () => {

@@ -1,3 +1,4 @@
+// Registra una puja rechazada, el usuario responsable, el motivo y la fecha del intento.
 export class IntentoPujaFallida {
 
     public readonly usuarioId: string;

@@ -1,5 +1,4 @@
-// Define un caso de uso para consultar todas las subastas disponibles.
-// El controlador utiliza este caso de uso en lugar de acceder directamente al repositorio.
+// Caso de uso que obtiene todas las subastas a través del contrato del repositorio.
 
 // Importa la clase Subasta para indicar el tipo de datos que se devolverá.
 import { Subasta } from "../domain/Subasta";
@@ -20,14 +19,12 @@ export class ConsultarSubastas {
         private readonly repository: SubastaRepository
     ) {}
 
-    // Declara el método ejecutar.
-    // Este método realiza la consulta de todas las subastas.
-    // Devuelve un arreglo de objetos Subasta.
+    // Recupera las subastas y devuelve la colección al controlador solicitante.
     async ejecutar():
     Promise<Subasta[]>
 {
         // Solicita al repositorio todas las subastas almacenadas.
-        // Retorna el resultado al código que llamó al caso de use.
+        // Retorna el resultado al código que llamó al caso de uso.
         return await this.repository.obtenerTodas();
     }
 }

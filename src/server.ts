@@ -3,8 +3,10 @@ import { createServer } from "http";
 import { conectarMongo }from "./infrastructure/repositories/mongodb";
 import { configurarSocket } from "./infrastructure/socket/socketServer";
 
+// Puerto HTTP utilizado por la API y las conexiones de Socket.IO.
 const PORT: number = 5000;
 
+// Conecta la base de datos y levanta el servidor HTTP con soporte de tiempo real.
 async function iniciarServidor() {
 
     await conectarMongo();

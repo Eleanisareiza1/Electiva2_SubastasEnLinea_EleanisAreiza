@@ -1,6 +1,7 @@
 import { SubastaRepository }
 from "../domain/subastaRepository";
 
+// Caso de uso que consulta los intentos de puja rechazados de una subasta concreta.
 export class ConsultarIntentosFallidos {
 
     constructor(
@@ -8,6 +9,7 @@ export class ConsultarIntentosFallidos {
         SubastaRepository
     ) {}
 
+  // Localiza la subasta por índice y devuelve el historial de intentos fallidos.
   async  ejecutar(
         indiceSubasta: number
     ) {

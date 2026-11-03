@@ -5,10 +5,11 @@ import { Dinero } from "../../domain/valueObjects/Dinero";
 import { EstadoSubasta } from "../../domain/valueObjects/EstadoSubasta";
 import { Puja } from "../../domain/Puja";
 
-
+// Adaptador de persistencia que traduce entre las entidades de dominio y MongoDB.
 export class MongoSubastaRepository
     implements SubastaRepository {
 
+    // Guarda o actualiza el documento identificado por título y vendedor.
     async guardar(
     subasta: Subasta
 ): Promise<void> {
@@ -94,6 +95,7 @@ export class MongoSubastaRepository
 
 }
 
+    // Recupera los documentos y reconstruye las entidades y sus objetos de valor.
     async obtenerTodas():
     Promise<Subasta[]> {
 
