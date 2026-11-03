@@ -129,13 +129,14 @@ export class Subasta {
     }
   
     static reconstruir(
-        titulo: string,
-        vendedorId: string,
-        precioBase: Dinero,
-        incrementoMinimo: Dinero,
-        fechaPublicacion: Date,
-        fechaCierre: Date,
-        estado: EstadoSubasta
+    titulo: string,
+    vendedorId: string,
+    precioBase: Dinero,
+    incrementoMinimo: Dinero,
+    fechaPublicacion: Date,
+    fechaCierre: Date,
+    estado: EstadoSubasta,
+    pujas: Puja[] = []
     ): Subasta {
 
         const subasta =
@@ -151,7 +152,8 @@ export class Subasta {
             subasta,
             {
                 fechaPublicacion,
-                estado
+                estado,
+                pujas
             }
         );
 
@@ -305,6 +307,38 @@ export class Subasta {
         this.pujas.length - 1
     ];
 
+    }
+
+    obtenerUltimaPuja(): Puja | null {
+
+        if (
+            this.pujas.length === 0
+        ) {
+
+            return null;
+
+        }
+
+        return this.pujas[
+            this.pujas.length - 1
+        ];
+
+    }
+
+    obtenerPujas(): Puja[] {
+
+    return this.pujas;
+
+    }
+
+    obtenerGanadorId(): string | null {
+
+    return this.ganadorId;
+
+    }
+
+    obtenerOrdenPago():OrdenPago | null {
+    return this.ordenPago;
     }
 
     cancelar(): void {

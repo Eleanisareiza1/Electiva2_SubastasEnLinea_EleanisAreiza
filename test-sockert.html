@@ -46,6 +46,41 @@
                 );
 
             }
+            
+        );
+
+        socket.on(
+            "usuario-superado",
+            (data) => {
+
+                console.log(
+                    "⚠️ Usuario superado:",
+                    data
+                );
+
+                alert(
+                    "Usuario superado: " +
+                    JSON.stringify(data)
+                );
+
+            }
+        );
+
+        socket.on(
+            "subasta-cerrada",
+            (data) => {
+
+                console.log(
+                    "🔒 Subasta cerrada:",
+                    data
+                );
+
+                alert(
+                    "Subasta cerrada: " +
+                    JSON.stringify(data)
+                );
+
+            }
         );
 
         function suscribirse() {

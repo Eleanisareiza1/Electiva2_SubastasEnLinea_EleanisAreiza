@@ -170,7 +170,7 @@ export const cancelarSubasta = (
 
 };
 
-export const cerrarSubasta = (
+export const cerrarSubasta = async(
     request: Request,
     response: Response
 ) => {
@@ -180,12 +180,18 @@ export const cerrarSubasta = (
         const { indice } =
             request.params;
 
-        const casoDeUso =
-            new CerrarSubasta(
-                subastaRepository
+        const notificaciones =
+            new SocketIONotificacionAdapter(
+                obtenerSocket()
             );
 
-        casoDeUso.ejecutar({
+        const casoDeUso =
+            new CerrarSubasta(
+                subastaRepository,
+                notificaciones
+            );
+
+      await casoDeUso.ejecutar({
             indiceSubasta:
                 Number(indice)
         });

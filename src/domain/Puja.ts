@@ -38,5 +38,28 @@ export class Puja {
         this.fecha = new Date();
     }
 
+    static reconstruir(
+        usuarioId: string,
+        valor: Dinero,
+        fecha: Date
+    ): Puja {
+
+        const puja =
+            new Puja(
+                usuarioId,
+                valor
+            );
+
+        Object.assign(
+            puja,
+            {
+                fecha
+            }
+        );
+
+        return puja;
+
+    }
+
 // Cierra la definición de la clase Puja.
 }

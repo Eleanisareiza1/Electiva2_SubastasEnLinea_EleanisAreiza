@@ -18,7 +18,7 @@ export class SocketIONotificacionAdapter
             indiceSubasta,
             valor }
         );
-        
+
         this.io.to(
             `subasta-${indiceSubasta}`
         ).emit(
@@ -28,6 +28,45 @@ export class SocketIONotificacionAdapter
                 valor
             }
         );
+
+    }
+
+    notificarUsuarioSuperado(
+    indiceSubasta: number,
+    usuarioId: string
+    ): void {
+        console.log(
+            "⚠️ Emitiendo usuario-superado",
+            usuarioId
+        );
+        this.io.to(
+            `subasta-${indiceSubasta}`
+        ).emit(
+            "usuario-superado",
+            {
+                usuarioId
+            }
+        );
+
+    }
+
+    notificarSubastaCerrada(
+        indiceSubasta: number
+    ): void {
+
+    console.log(
+        " Emitiendo subasta-cerrada",
+        indiceSubasta
+    );
+
+    this.io.to(
+        `subasta-${indiceSubasta}`
+    ).emit(
+        "subasta-cerrada",
+        {
+            indiceSubasta
+        }
+    );
 
     }
 

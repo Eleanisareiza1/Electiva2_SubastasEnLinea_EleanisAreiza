@@ -1,5 +1,5 @@
-import { SubastaRepository }
-from "../domain/subastaRepository";
+import { SubastaRepository } from "../domain/subastaRepository";
+import { NotificacionPort } from "./ports/NotificacionPort";
 
 interface CerrarSubastaDTO {
 
@@ -10,8 +10,8 @@ interface CerrarSubastaDTO {
 export class CerrarSubasta {
 
     constructor(
-        private readonly repository:
-        SubastaRepository
+        private readonly repository: SubastaRepository,
+        private readonly notificaciones: NotificacionPort
     ) {}
 
   async  ejecutar(
@@ -35,6 +35,15 @@ export class CerrarSubasta {
         }
 
         subasta.cerrar();
+
+        await this.repository.guardar(
+            subasta
+        );
+
+        this.notificaciones
+            .notificarSubastaCerrada(
+                datos.indiceSubasta
+            );
 
     }
 

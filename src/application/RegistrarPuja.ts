@@ -49,16 +49,36 @@ export class RegistrarPuja {
             // Detiene la ejecución y muestra un mensaje de error.
             throw new Error("Subasta no encontrada");
         }
-
+        
+        const liderAnterior = subasta.obtenerUltimaPuja();
         // Solicita a la entidad Subasta que registre la puja.
         // La entidad se encarga de validar las reglas de negocio.
+       
+
         subasta.registrarPuja(
             // Envía el identificador del usuario.
             datos.usuarioId,
-
             // Envía el valor ofrecido.
             datos.valor
         );
+        await this.repository.guardar(
+            subasta
+        );
+        if (
+            liderAnterior &&
+            liderAnterior.usuarioId !==
+            datos.usuarioId
+        ) {
+
+            this.notificaciones
+                .notificarUsuarioSuperado(
+                    datos.indiceSubasta,
+                    liderAnterior.usuarioId
+                );
+
+            
+
+        }
 
         this.notificaciones
         .notificarNuevaPuja(
