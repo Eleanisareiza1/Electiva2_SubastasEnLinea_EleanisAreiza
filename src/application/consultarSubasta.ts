@@ -2,7 +2,7 @@
 
 // Importa la clase Subasta para indicar el tipo de datos que se devolverá.
 import { Subasta } from "../domain/Subasta";
-
+import { EstadoSubasta } from "../domain/valueObjects/EstadoSubasta";
 // Importa la interfaz del repositorio de subastas.
 // Esto permite trabajar con cualquier implementación del repositorio.
 import { SubastaRepository } from "../domain/subastaRepository";
@@ -22,9 +22,28 @@ export class ConsultarSubastas {
     // Recupera las subastas y devuelve la colección al controlador solicitante.
     async ejecutar():
     Promise<Subasta[]>
-{
-        // Solicita al repositorio todas las subastas almacenadas.
-        // Retorna el resultado al código que llamó al caso de uso.
-        return await this.repository.obtenerTodas();
+    {
+        const subastas =
+            await this.repository.obtenerTodas();
+
+        for (const subasta of subastas) {
+
+            if (
+                subasta.estaVencida() &&
+                subasta.obtenerEstado() ===
+                EstadoSubasta.ABIERTA
+            ) {
+
+                subasta.cerrar();
+
+                await this.repository.guardar(
+                    subasta
+                );
+
+            }
+
+        }
+
+        return subastas;
     }
 }

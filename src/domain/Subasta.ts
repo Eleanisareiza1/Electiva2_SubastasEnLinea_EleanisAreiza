@@ -176,20 +176,21 @@ export class Subasta {
         valor: number
     ): void {
         if (
-            this.estado ===
-            EstadoSubasta.CANCELADA
+            this.estado === EstadoSubasta.CANCELADA ||
+            this.estado === EstadoSubasta.CERRADA ||
+            this.estado === EstadoSubasta.DESIERTA
         ) {
 
             this.registrarIntentoFallido(
                 usuarioId,
-                "RN-05: No se pueden registrar pujas en una subasta cancelada"
+                "RN-06: Solo se aceptan pujas sobre subastas abiertas"
             );
 
             throw new Error(
-                "RN-05: No se pueden registrar pujas en una subasta cancelada"
+                "RN-06: Solo se aceptan pujas sobre subastas abiertas"
             );
 
-    }
+        }
         if (
         usuarioId === this.vendedorId
     ) {
@@ -448,6 +449,14 @@ export class Subasta {
 
     }
 
+    estaVencida(): boolean {
+
+    return (
+        new Date() >=
+        this.fechaCierre
+        );
+
+    }
     // Conserva el motivo de una puja rechazada para su consulta posterior.
     private registrarIntentoFallido(
         usuarioId: string,

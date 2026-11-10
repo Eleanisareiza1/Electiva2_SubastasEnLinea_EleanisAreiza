@@ -70,13 +70,63 @@ describe("RN-05", () => {
                 );
 
             }).toThrow(
-                "RN-05"
+                "RN-06"
             );
 
         }
     );
 
 });
+
+
+describe("RN-06", () => {
+
+    test(
+        "rechaza pujas sobre una subasta cerrada",
+        () => {
+
+            const fechaCierre =
+                new Date(
+                    Date.now() + 86400000
+                );
+
+            const subasta =
+                new Subasta(
+                    "Laptop Gamer",
+                    "vendedor1",
+                    new Dinero(1000000),
+                    new Dinero(50000),
+                    fechaCierre
+                );
+
+            subasta.registrarPuja(
+                "usuario1",
+                1000000
+            );
+
+            (subasta as any).fechaCierre =
+                new Date(
+                    Date.now() - 1000
+                );
+
+            subasta.cerrar();
+
+            expect(() => {
+
+                subasta.registrarPuja(
+                    "usuario2",
+                    1100000
+                );
+
+            }).toThrow(
+                "RN-06"
+            );
+
+        }
+    );
+
+});
+
 
 describe("RN-08", () => {
 

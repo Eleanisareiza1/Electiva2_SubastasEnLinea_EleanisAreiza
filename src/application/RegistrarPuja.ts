@@ -2,6 +2,7 @@
 
 // Importa la interfaz del repositorio de subastas.
 import { SubastaRepository } from "../domain/subastaRepository";
+import { EstadoSubasta } from "../domain/valueObjects/EstadoSubasta";
 import { NotificacionPort } from "./ports/NotificacionPort";
 
 // Datos de entrada necesarios para localizar la subasta y registrar una oferta.
@@ -53,6 +54,23 @@ export class RegistrarPuja {
         // Solicita a la entidad Subasta que registre la puja.
         // La entidad valida las reglas de negocio antes de aceptar la oferta.
        
+        if (
+            subasta.estaVencida() &&
+            subasta.obtenerEstado() ===
+            EstadoSubasta.ABIERTA
+        ) {
+
+            subasta.cerrar();
+
+            await this.repository.guardar(
+                subasta
+            );
+
+            throw new Error(
+                "RN-06: La subasta ya ha sido cerrada"
+            );
+
+        }
 
         subasta.registrarPuja(
             // Envía el identificador del usuario.
