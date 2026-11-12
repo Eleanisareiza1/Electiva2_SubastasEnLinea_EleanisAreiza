@@ -4,6 +4,8 @@ import { SubastaModel } from "./SubastaModel";
 import { Dinero } from "../../domain/valueObjects/Dinero";
 import { EstadoSubasta } from "../../domain/valueObjects/EstadoSubasta";
 import { Puja } from "../../domain/Puja";
+import { OrdenPago } from "../../domain/OrdenPago";
+import { EstadoPago } from "../../domain/valueObjects/EstadoPago";
 
 // Adaptador de persistencia que traduce entre las entidades de dominio y MongoDB.
 export class MongoSubastaRepository
@@ -74,18 +76,24 @@ export class MongoSubastaRepository
                 ),
 
             ordenPago:
-                subasta.obtenerOrdenPago()
-                    ? {
-                        usuarioId:
-                            subasta.obtenerOrdenPago()!.ganadorId,
+            subasta.obtenerOrdenPago()
+                ? {
+                    usuarioId:
+                        subasta.obtenerOrdenPago()!.ganadorId,
 
-                        valor:
-                            subasta.obtenerOrdenPago()!.valor,
+                    valor:
+                        subasta.obtenerOrdenPago()!.valor,
 
-                        fechaLimite:
-                            subasta.obtenerOrdenPago()!.fechaLimite
-                    }
+                    fechaLimite:
+                        subasta.obtenerOrdenPago()!.fechaLimite,
+
+                    estado:
+                        subasta
+                            .obtenerOrdenPago()!
+                            .obtenerEstado()
+                }
                     : null
+
         },
         {
             upsert: true,
@@ -116,8 +124,17 @@ export class MongoSubastaRepository
                         puja.fecha
                     )
             );
+            const ordenPago =
+            documento.ordenPago
+                ? new OrdenPago(
+                    documento.ordenPago.usuarioId!,
+                    documento.ordenPago.valor!,
+                    documento.ordenPago.fechaLimite!,
+                    documento.ordenPago.estado as EstadoPago
+                )
+                : null;
 
-        return Subasta.reconstruir(
+       return Subasta.reconstruir(
             documento.titulo!,
             documento.vendedorId!,
             new Dinero(
@@ -129,7 +146,9 @@ export class MongoSubastaRepository
             documento.fechaPublicacion!,
             documento.fechaCierre!,
             documento.estado as EstadoSubasta,
-            pujas
+            pujas,
+            documento.ganadorId ?? null,
+            ordenPago
         );
 
     }

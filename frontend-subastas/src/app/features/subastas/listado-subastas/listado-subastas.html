@@ -1,0 +1,42 @@
+<div class="contenedor">
+
+  <div class="cabecera">
+
+    <h1>Subastas Disponibles</h1>
+
+    <a
+      routerLink="/subastas/nueva"
+      class="boton">
+
+      Nueva Subasta
+
+    </a>
+
+  </div>
+
+  <div class="grid">
+
+    <div
+  class="card"
+  *ngFor="
+    let subasta of subastas;
+    let i = index
+  ">
+
+      <h2>{{ subasta.titulo }}</h2>
+
+      <p>
+        <strong>Vendedor:</strong>
+        {{ subasta.vendedorId }}
+      </p>
+
+      <p>
+        <strong>Estado:</strong>
+        {{ subasta.estado }}
+      </p>
+
+    </div>
+
+  </div>
+
+</div>

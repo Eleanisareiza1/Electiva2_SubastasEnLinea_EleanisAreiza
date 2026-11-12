@@ -30,9 +30,12 @@ const OrdenPagoSchema =
 
         valor: Number,
 
-        fechaLimite: Date
+        fechaLimite: Date,
+
+        estado: String
 
     });
+
 
 const SubastaSchema =
     new mongoose.Schema({

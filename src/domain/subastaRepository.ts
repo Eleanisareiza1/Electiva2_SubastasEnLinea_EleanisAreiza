@@ -12,4 +12,5 @@ export interface SubastaRepository {
     obtenerTodas():
         Promise<Subasta[]>;
 
+        
 }

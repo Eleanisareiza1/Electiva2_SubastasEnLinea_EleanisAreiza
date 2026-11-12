@@ -137,7 +137,9 @@ export class Subasta {
     fechaPublicacion: Date,
     fechaCierre: Date,
     estado: EstadoSubasta,
-    pujas: Puja[] = []
+    pujas: Puja[] = [],
+    ganadorId: string | null = null,
+    ordenPago: OrdenPago | null = null
     ): Subasta {
 
         const subasta =
@@ -157,8 +159,8 @@ export class Subasta {
                 estado,
                 pujas,
                 intentosFallidos: [],
-                ganadorId: null,
-                ordenPago: null
+                ganadorId,
+                ordenPago
             }
         );
 

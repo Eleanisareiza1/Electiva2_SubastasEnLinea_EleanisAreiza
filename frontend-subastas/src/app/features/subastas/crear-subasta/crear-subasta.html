@@ -1,0 +1,30 @@
+<div class="contenedor">
+
+  <h1>Nueva Subasta</h1>
+
+  <input
+    placeholder="Título"
+    [(ngModel)]="titulo">
+
+  <input
+    type="number"
+    placeholder="Precio base"
+    [(ngModel)]="precioBase">
+
+  <input
+    type="number"
+    placeholder="Incremento mínimo"
+    [(ngModel)]="incrementoMinimo">
+
+  <input
+    type="datetime-local"
+    [(ngModel)]="fechaCierre">
+
+  <button
+    (click)="crear()">
+
+    Crear Subasta
+
+  </button>
+
+</div>
