@@ -1,23 +1,22 @@
 # Dependencias
 node_modules/
 
-# Compilación TypeScript
+# Compilación
 dist/
+frontend-subastas/dist/
+frontend-subastas/.angular/
 
-# Variables de entorno
+# Variables de entorno (solo se versiona .env.example)
 .env
+.env.*
+!.env.example
 
-# Logs
+# Logs y cobertura
 *.log
-
-# VS Code
-.vscode/
-
-# Cobertura
 coverage/
 
-# Sistema operativo
+# Editores y sistema operativo
+.vscode/
+.idea/
 .DS_Store
 Thumbs.db
-
-.env
