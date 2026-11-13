@@ -1,38 +1,57 @@
-import app from "./app";
 import { createServer } from "http";
-import { conectarMongo }from "./infrastructure/repositories/mongodb";
-import { configurarSocket } from "./infrastructure/socket/socketServer";
+import { crearApp } from "./app";
+import { BcryptCifrador } from "./infrastructure/auth/BcryptCifrador";
+import { JwtGeneradorTokens } from "./infrastructure/auth/JwtGeneradorTokens";
+import { UuidGeneradorIds } from "./infrastructure/auth/UuidGeneradorIds";
+import { cargarEntorno } from "./infrastructure/config/entorno";
+import { crearCasosDeUso, crearRepositorios } from "./infrastructure/contenedor";
+import { sembrarDatosDemo } from "./infrastructure/herramientas/datosDemo";
+import { conectarMongo } from "./infrastructure/repositories/mongo/conexion";
+import { crearServidorTiempoReal } from "./infrastructure/socket/ServidorTiempoReal";
+import { SocketIONotificacionAdapter } from "./infrastructure/socket/SocketIONotificacionAdapter";
 
-// Puerto HTTP utilizado por la API y las conexiones de Socket.IO.
-const PORT: number = 5000;
+async function iniciar(): Promise<void> {
 
-// Conecta la base de datos y levanta el servidor HTTP con soporte de tiempo real.
-async function iniciarServidor() {
+    const entorno = cargarEntorno();
 
-    await conectarMongo();
+    if (entorno.persistencia === "mongo" && entorno.mongodbUri) {
+        await conectarMongo(entorno.mongodbUri);
+    }
 
-    const servidorHttp =
-        createServer(app);
+    const repositorios = await crearRepositorios(entorno.persistencia);
+    const tokens = new JwtGeneradorTokens(entorno.jwtSecret, entorno.jwtExpiracion);
+    const cifrador = new BcryptCifrador();
+    const ids = new UuidGeneradorIds();
 
-    configurarSocket(
-        servidorHttp
-    );
+    // El servidor HTTP se crea primero para que REST y WebSockets compartan puerto.
+    const servidorHttp = createServer();
+    const io = crearServidorTiempoReal(servidorHttp, tokens, entorno.origenesPermitidos);
 
-    servidorHttp.listen(
-        PORT,
-        () => {
+    const casos = crearCasosDeUso(repositorios, {
+        tiempoReal: new SocketIONotificacionAdapter(io),
+        cifrador,
+        tokens,
+        ids
+    });
 
-            console.log(
-                `SERVER RUNNING AT ${PORT}`
-            );
+    if (entorno.sembrarDemo) {
+        await sembrarDatosDemo(repositorios, cifrador, ids);
+    }
 
-            console.log(
-                "✅ Socket.IO iniciado"
-            );
+    servidorHttp.on("request", crearApp(casos, tokens, {
+        webhookSecret: entorno.webhookSecret,
+        origenesPermitidos: entorno.origenesPermitidos
+    }));
 
-        }
-    );
-
+    servidorHttp.listen(entorno.puerto, () => {
+        console.log(`[infraestructura] API REST y WebSockets en http://localhost:${entorno.puerto}/api/v1`);
+        console.log(`[infraestructura] Persistencia: ${entorno.persistencia}`);
+    });
 }
 
-iniciarServidor();
+process.on("unhandledRejection", (error) => console.error("[error] Promesa rechazada sin manejar", error));
+
+iniciar().catch((error: unknown) => {
+    console.error("[error] No fue posible iniciar el servidor:", error instanceof Error ? error.message : error);
+    process.exit(1);
+});

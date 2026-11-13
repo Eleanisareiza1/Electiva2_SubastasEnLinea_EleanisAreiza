@@ -1,77 +1,31 @@
-import { Server } from "socket.io"; // biblioteca de JavaScript que permite la comunicación bidireccional en tiempo real entre un servidor y clientes.
-import { NotificacionPort } from "../../application/ports/NotificacionPort";
+import { Server } from "socket.io";
+import {
+    CambioEstadoDifundido,
+    NotificacionPersonal,
+    NotificacionPort,
+    NuevaPujaDifundida
+} from "../../application/ports/NotificacionPort";
+import { SALA_LISTADO, salaSubasta, salaUsuario } from "./ServidorTiempoReal";
 
-// Implementa el puerto de notificaciones de aplicación usando salas de Socket.IO.
-export class SocketIONotificacionAdapter
-    implements NotificacionPort {
+// Adaptador del puerto de salida: traduce los hechos del negocio a mensajes de
+// Socket.IO y deja registro en consola (RNF-17).
+export class SocketIONotificacionAdapter implements NotificacionPort {
 
-    constructor(
-        private readonly io: Server
-    ) {}
+    constructor(private readonly io: Server) {}
 
-    // Emite el importe de una nueva puja a los clientes de la sala correspondiente.
-    notificarNuevaPuja(
-        indiceSubasta: number,
-        valor: number
-    ): void {
-    
-    console.log(
-        "Emitiendo nueva-puja",{
-            indiceSubasta,
-            valor }
-        );
-
-        this.io.to(
-            `subasta-${indiceSubasta}`
-        ).emit(
-            "nueva-puja",
-            {
-                indiceSubasta,
-                valor
-            }
-        );
-
+    difundirNuevaPuja(datos: NuevaPujaDifundida): void {
+        console.log(`[tiempo-real] nueva-puja ${datos.subastaId}: $${datos.valor}`);
+        this.io.to(salaSubasta(datos.subastaId)).to(SALA_LISTADO).emit("nueva-puja", datos);
     }
 
-    // Avisa al usuario indicado que otra oferta ha tomado el liderazgo.
-    notificarUsuarioSuperado(
-    indiceSubasta: number,
-    usuarioId: string
-    ): void {
-        console.log(
-            "⚠️ Emitiendo usuario-superado",
-            usuarioId
-        );
-        this.io.to(
-            `subasta-${indiceSubasta}`
-        ).emit(
-            "usuario-superado",
-            {
-                usuarioId
-            }
-        );
-
+    difundirCambioEstado(datos: CambioEstadoDifundido): void {
+        console.log(`[tiempo-real] subasta-estado ${datos.subastaId}: ${datos.estado}`);
+        this.io.to(salaSubasta(datos.subastaId)).to(SALA_LISTADO).emit("subasta-estado", datos);
     }
 
-    // Comunica el cierre a todos los clientes suscritos a la subasta.
-    notificarSubastaCerrada(
-        indiceSubasta: number
-    ): void {
-
-    console.log(
-        " Emitiendo subasta-cerrada",
-        indiceSubasta
-    );
-
-    this.io.to(
-        `subasta-${indiceSubasta}`
-    ).emit(
-        "subasta-cerrada",
-        {
-            indiceSubasta
-        }
-    );
-
+    enviarAUsuario(usuarioId: string, notificacion: NotificacionPersonal): void {
+        console.log(`[tiempo-real] notificacion ${notificacion.tipo} -> usuario ${usuarioId}`);
+        this.io.to(salaUsuario(usuarioId)).emit("notificacion", notificacion);
     }
 
 }
