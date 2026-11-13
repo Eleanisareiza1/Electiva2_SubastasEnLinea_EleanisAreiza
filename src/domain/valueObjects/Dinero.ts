@@ -57,8 +57,4 @@ export class Dinero {
         return this.valor < otro.obtenerValor();
     }
 
-    esIgualA(otro: Dinero): boolean {
-        return this.valor === otro.obtenerValor();
-    }
-
 }
