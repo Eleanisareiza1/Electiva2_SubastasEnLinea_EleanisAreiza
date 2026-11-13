@@ -1,0 +1,90 @@
+/* Sistema visual: azul profundo + amarillo (inspirado en Copart) con acentos
+   naranja para pujar y rojo para lo urgente (inspirado en ACV). */
+:root {
+  --azul-900: #0b1f4d;
+  --azul-800: #12307a;
+  --azul-700: #1d3f99;
+  --azul-500: #2f6fed;
+  --azul-50: #eef4ff;
+  --amarillo: #ffc72c;
+  --amarillo-oscuro: #f0b400;
+  --naranja: #ff6a13;
+  --naranja-oscuro: #e85a05;
+  --rojo: #e5383b;
+  --verde: #16a34a;
+  --gris-50: #f5f7fb;
+  --gris-100: #eef1f6;
+  --gris-200: #e2e7ef;
+  --gris-300: #cfd6e2;
+  --texto: #14213d;
+  --texto-suave: #5b6b85;
+  --sombra: 0 6px 22px rgba(11, 31, 77, 0.08);
+  --sombra-fuerte: 0 14px 34px rgba(11, 31, 77, 0.16);
+  --radio: 14px;
+  --fuente: 'Inter', system-ui, 'Segoe UI', Roboto, Arial, sans-serif;
+  --fuente-titulos: 'Poppins', 'Inter', system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body { margin: 0; }
+
+body {
+  background: var(--gris-50);
+  color: var(--texto);
+  font-family: var(--fuente);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 { font-family: var(--fuente-titulos); line-height: 1.2; margin: 0 0 .5em; letter-spacing: -.01em; }
+
+a { color: var(--azul-700); }
+
+button, input, select, textarea { font: inherit; color: inherit; }
+
+.contenedor { width: min(1280px, calc(100% - 40px)); margin: 0 auto; }
+
+/* Botones */
+.boton {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  border: 0; border-radius: 10px; padding: 11px 18px; font-weight: 700; cursor: pointer;
+  text-decoration: none; transition: transform .08s, background .15s, box-shadow .15s; white-space: nowrap;
+}
+.boton:active { transform: translateY(1px); }
+.boton:disabled { opacity: .5; cursor: not-allowed; }
+.boton-amarillo { background: var(--amarillo); color: var(--azul-900); }
+.boton-amarillo:hover:not(:disabled) { background: var(--amarillo-oscuro); }
+.boton-naranja { background: var(--naranja); color: #fff; box-shadow: 0 6px 16px rgba(255, 106, 19, .3); }
+.boton-naranja:hover:not(:disabled) { background: var(--naranja-oscuro); }
+.boton-azul { background: var(--azul-500); color: #fff; }
+.boton-azul:hover:not(:disabled) { background: var(--azul-700); }
+.boton-contorno { background: #fff; color: var(--azul-700); border: 1.5px solid var(--gris-300); }
+.boton-contorno:hover:not(:disabled) { border-color: var(--azul-500); }
+.boton-peligro { background: #fff; color: var(--rojo); border: 1.5px solid #fecaca; }
+.boton-peligro:hover:not(:disabled) { background: #fff1f1; }
+.boton-bloque { width: 100%; }
+
+/* Tarjetas y formularios */
+.tarjeta { background: #fff; border-radius: var(--radio); box-shadow: var(--sombra); padding: 22px; }
+
+.campo { display: grid; gap: 6px; margin-bottom: 16px; }
+.campo label { font-weight: 600; font-size: 14px; }
+.campo small { color: var(--texto-suave); font-size: 12.5px; }
+.campo input, .campo select, .campo textarea {
+  width: 100%; border: 1.5px solid var(--gris-300); border-radius: 10px; padding: 11px 13px; background: #fff;
+  transition: border-color .15s, box-shadow .15s;
+}
+.campo input:focus, .campo select:focus, .campo textarea:focus {
+  outline: none; border-color: var(--azul-500); box-shadow: 0 0 0 4px rgba(47, 111, 237, .15);
+}
+.campo textarea { min-height: 110px; resize: vertical; }
+
+.etiqueta-seccion { font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--texto-suave); }
+
+.cargando { display: grid; place-items: center; padding: 60px; color: var(--texto-suave); }
+.girador { width: 36px; height: 36px; border-radius: 50%; border: 4px solid var(--gris-200); border-top-color: var(--azul-500); animation: girar .8s linear infinite; }
+@keyframes girar { to { transform: rotate(360deg); } }
+
+.vacio-grande { text-align: center; padding: 50px 20px; color: var(--texto-suave); }

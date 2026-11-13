@@ -1,0 +1,178 @@
+<div class="contenedor pagina">
+  <nav class="migas">
+    <a routerLink="/subastas">Subastas</a> ›
+    @if (subasta(); as s) {
+      <a routerLink="/subastas" [queryParams]="{ categoria: s.categoriaId }">{{ s.categoriaNombre }}</a> › <span>{{ s.titulo }}</span>
+    }
+  </nav>
+
+  @if (cargando()) {
+    <div class="cargando"><div class="girador"></div></div>
+  } @else if (errorCarga()) {
+    <div class="tarjeta"><app-alerta-error [error]="errorCarga()" /></div>
+  } @else if (subasta(); as s) {
+
+    @if (mensajeCierre() && !abierta()) {
+      <div class="banda-cierre" [attr.data-estado]="s.estado">
+        <strong>{{ mensajeCierre() }}</strong>
+      </div>
+    }
+
+    <div class="rejilla">
+      <!-- Columna principal -->
+      <section class="principal">
+        <div class="tarjeta foto-tarjeta">
+          <app-imagen-articulo [url]="s.imagenUrl" [titulo]="s.titulo" [categoriaId]="s.categoriaId" [categoria]="s.categoriaNombre" [grande]="true" />
+        </div>
+
+        <div class="tarjeta">
+          <div class="encabezado-articulo">
+            <div>
+              <span class="etiqueta-seccion">{{ s.categoriaNombre }} · {{ conservacion(s.estadoConservacion) }}</span>
+              <h1>{{ s.titulo }}</h1>
+            </div>
+            <app-estado-subasta [estado]="s.estado" />
+          </div>
+          <p class="descripcion">{{ s.descripcion }}</p>
+          <dl class="datos">
+            <div><dt>Vendedor</dt><dd>{{ s.vendedorNombre }}</dd></div>
+            <div><dt>Precio base</dt><dd>{{ s.precioBase | pesos }}</dd></div>
+            <div><dt>Incremento mínimo</dt><dd>{{ s.incrementoMinimo | pesos }}</dd></div>
+            <div><dt>Publicada</dt><dd>{{ s.fechaPublicacion | date: 'd MMM y, h:mm a' }}</dd></div>
+            <div><dt>Cierre</dt><dd>{{ s.fechaCierre | date: 'd MMM y, h:mm a' }}</dd></div>
+            <div><dt>Participantes</dt><dd>{{ s.totalParticipantes }}</dd></div>
+          </dl>
+        </div>
+
+        <!-- RN-23: historial público, sin datos de contacto -->
+        <div class="tarjeta">
+          <div class="titulo-bloque">
+            <h3>Historial de pujas</h3>
+            <span class="etiqueta-seccion">{{ s.totalPujas }} {{ s.totalPujas === 1 ? 'puja' : 'pujas' }}</span>
+          </div>
+          @if (s.historial.length) {
+            <table class="historial">
+              <thead><tr><th>Postor</th><th>Oferta</th><th>Fecha</th></tr></thead>
+              <tbody>
+                @for (p of s.historial; track p.fecha + p.valor; let primera = $first) {
+                  <tr [class.nueva]="p.fecha === nuevaPujaClave()" [class.lider]="primera">
+                    <td>
+                      @if (primera) { <span class="corona">👑</span> }
+                      {{ p.postorNombre }} @if (p.postorId === miId()) { <em>(tú)</em> }
+                    </td>
+                    <td class="valor">{{ p.valor | pesos }}</td>
+                    <td>{{ p.fecha | date: 'd MMM, h:mm:ss a' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          } @else {
+            <p class="suave">Todavía no hay pujas. ¡Sé el primero en ofertar!</p>
+          }
+        </div>
+
+        @if (soyVendedor() || intentos() !== null) {
+          <div class="tarjeta">
+            <div class="titulo-bloque">
+              <h3>Intentos de puja rechazados</h3>
+              <button type="button" class="boton boton-contorno" (click)="verIntentos()">
+                {{ intentos() === null ? 'Ver auditoría' : 'Actualizar' }}
+              </button>
+            </div>
+            @if (intentos(); as lista) {
+              @if (lista.length) {
+                <table class="historial">
+                  <thead><tr><th>Postor</th><th>Oferta</th><th>Regla</th><th>Motivo</th></tr></thead>
+                  <tbody>
+                    @for (i of lista; track i.fecha + i.postorId) {
+                      <tr>
+                        <td>{{ i.postorNombre }}</td>
+                        <td>{{ i.valorOfrecido | pesos }}</td>
+                        <td><span class="codigo">{{ i.codigo }}</span></td>
+                        <td>{{ i.motivo }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              } @else {
+                <p class="suave">No hay intentos rechazados.</p>
+              }
+            }
+          </div>
+        }
+      </section>
+
+      <!-- Panel de puja -->
+      <aside class="panel">
+        <div class="tarjeta panel-puja">
+          <div class="en-linea">
+            <span class="punto"></span> {{ conectados() }} {{ conectados() === 1 ? 'persona viendo' : 'personas viendo' }}
+          </div>
+
+          @if (abierta()) {
+            <span class="etiqueta-seccion">Cierra en</span>
+            <app-cuenta-regresiva [cierre]="s.fechaCierre" [grande]="true" (terminada)="alTerminar()" />
+          }
+
+          <div class="oferta" [class.pulso]="nuevaPujaClave()">
+            <small>{{ s.ofertaVigente ? 'Oferta vigente' : 'Precio base' }}</small>
+            <strong>{{ (s.ofertaVigente ?? s.precioBase) | pesos }}</strong>
+            @if (soyLider() && abierta()) { <span class="lider">✔ Vas ganando</span> }
+          </div>
+
+          @if (puedePujar()) {
+            <form (ngSubmit)="pujar()" class="formulario-puja">
+              <label for="monto">Tu oferta (mínimo {{ s.montoMinimoSiguiente | pesos }})</label>
+              <div class="entrada-monto">
+                <span>$</span>
+                <input id="monto" name="monto" type="number" step="1" [min]="s.montoMinimoSiguiente"
+                       [ngModel]="monto()" (ngModelChange)="monto.set($event)" required />
+              </div>
+              <div class="rapidos">
+                <button type="button" (click)="sumar(0)">Mínimo</button>
+                <button type="button" (click)="sumar(1)">+{{ s.incrementoMinimo | pesos }}</button>
+                <button type="button" (click)="sumar(4)">+{{ s.incrementoMinimo * 4 | pesos }}</button>
+              </div>
+              <app-alerta-error [error]="errorPuja()" />
+              <button type="submit" class="boton boton-naranja boton-bloque grande" [disabled]="enviando() || soyLider()">
+                {{ enviando() ? 'Enviando…' : soyLider() ? 'Ya eres el mejor postor' : 'PUJAR ' + ((monto() ?? 0) | pesos) }}
+              </button>
+              <small class="nota">Las pujas aceptadas son irrevocables.</small>
+            </form>
+          } @else if (soyVendedor() && abierta()) {
+            <p class="nota-vendedor">Esta es tu subasta. Puedes cancelarla mientras no reciba pujas.</p>
+            <button type="button" class="boton boton-peligro boton-bloque" [disabled]="s.totalPujas > 0" (click)="cancelar()">
+              Cancelar subasta
+            </button>
+          } @else if (!abierta()) {
+            <div class="resultado">
+              @switch (s.estado) {
+                @case ('DESIERTA') { <p>Cerró sin pujas: <b>subasta desierta</b>.</p> }
+                @case ('CANCELADA') { <p>El vendedor <b>canceló</b> esta subasta.</p> }
+                @default {
+                  <p>🏆 Ganador: <b>{{ s.ganadorNombre }}</b> por <b>{{ s.ordenPago?.valor ?? s.ofertaVigente | pesos }}</b></p>
+                }
+              }
+            </div>
+          }
+        </div>
+
+        @if (s.ordenPago; as orden) {
+          <div class="tarjeta orden">
+            <span class="etiqueta-seccion">Orden de pago</span>
+            <strong>{{ orden.valor | pesos }}</strong>
+            <span class="estado-orden" [attr.data-estado]="orden.estado">{{ orden.estado }}</span>
+            @if (orden.estado === 'PENDIENTE') {
+              <p>Plazo hasta {{ orden.fechaLimite | date: 'd MMM, h:mm a' }}</p>
+              <app-cuenta-regresiva [cierre]="orden.fechaLimite" />
+            }
+            @if (urlPago(); as url) {
+              <a [href]="url" class="boton boton-amarillo boton-bloque">Pagar en la pasarela</a>
+              <small class="nota">El pago se confirma solo cuando la pasarela lo notifica.</small>
+            }
+          </div>
+        }
+      </aside>
+    </div>
+  }
+</div>

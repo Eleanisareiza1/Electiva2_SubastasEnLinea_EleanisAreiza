@@ -1,0 +1,43 @@
+<div class="contenedor pagina">
+  <span class="etiqueta-seccion">Pagos</span>
+  <h1>Mis órdenes de pago</h1>
+  <p class="intro">Cada subasta que ganas genera una orden con 48 horas de plazo. El pago se confirma únicamente cuando la pasarela lo notifica a la plataforma.</p>
+
+  <app-alerta-error [error]="error()" />
+
+  @if (ordenes(); as lista) {
+    <div class="lista">
+      @for (o of lista; track o.id) {
+        <article class="tarjeta orden" [attr.data-estado]="o.estado">
+          <div class="icono">{{ o.estado === 'PAGADA' ? '✔' : o.estado === 'VENCIDA' ? '✕' : '⏳' }}</div>
+          <div class="info">
+            <a [routerLink]="['/subastas', o.subastaId]"><h3>{{ o.titulo }}</h3></a>
+            <small>Orden {{ o.id }} · emitida {{ o.fechaEmision | date: 'd MMM y, h:mm a' }}</small>
+            @if (o.estado === 'PENDIENTE') {
+              <div class="plazo">Paga antes de {{ o.fechaLimite | date: 'd MMM, h:mm a' }} <app-cuenta-regresiva [cierre]="o.fechaLimite" /></div>
+            } @else if (o.estado === 'PAGADA') {
+              <div class="plazo">Pagada el {{ o.fechaPago | date: 'd MMM y, h:mm a' }}</div>
+            } @else {
+              <div class="plazo">El plazo venció sin confirmación de pago.</div>
+            }
+          </div>
+          <div class="monto">
+            <strong>{{ o.valor | pesos }}</strong>
+            <span class="estado">{{ o.estado }}</span>
+            @if (o.estado === 'PENDIENTE') {
+              <a [href]="urlPago(o)" class="boton boton-amarillo">Pagar ahora</a>
+            }
+          </div>
+        </article>
+      } @empty {
+        <div class="tarjeta vacio-grande">
+          <h3>Aún no tienes órdenes de pago</h3>
+          <p>Cuando ganes una subasta, aquí aparecerá tu orden.</p>
+          <a routerLink="/subastas" class="boton boton-naranja">Ir a pujar</a>
+        </div>
+      }
+    </div>
+  } @else if (!error()) {
+    <div class="cargando"><div class="girador"></div></div>
+  }
+</div>

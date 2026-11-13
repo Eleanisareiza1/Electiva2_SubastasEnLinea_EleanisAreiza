@@ -1,0 +1,8 @@
+<div class="marco" [style.background]="!mostrarFoto() ? estilo().fondo : null" [class.grande]="grande()">
+  @if (mostrarFoto()) {
+    <img [src]="url()" [alt]="titulo()" loading="lazy" (error)="fallo.set(true)" />
+  } @else {
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path [attr.d]="estilo().icono" /></svg>
+    <span>{{ categoria() }}</span>
+  }
+</div>

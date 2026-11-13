@@ -1,22 +1,12 @@
+// Registro de auditoría de una puja rechazada y su causa (RN-12).
 export class IntentoPujaFallida {
 
-    public readonly usuarioId: string;
-
-    public readonly motivo: string;
-
-    public readonly fecha: Date;
-
     constructor(
-        usuarioId: string,
-        motivo: string
-    ) {
-
-        this.usuarioId = usuarioId;
-
-        this.motivo = motivo;
-
-        this.fecha = new Date();
-
-    }
+        public readonly postorId: string,
+        public readonly valorOfrecido: number,
+        public readonly codigoRegla: string,
+        public readonly motivo: string,
+        public readonly fecha: Date
+    ) {}
 
 }

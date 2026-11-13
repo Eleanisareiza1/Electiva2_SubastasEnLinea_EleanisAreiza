@@ -1,0 +1,446 @@
+openapi: 3.0.3
+info:
+  title: Plataforma de Subastas en Línea — API REST
+  version: 3.0.0
+  description: |
+    API REST de la plataforma de subastas (Electiva II). Además de REST, el servidor expone
+    una API de WebSockets (Socket.IO, mismo puerto) y un webhook para la pasarela de pagos.
+
+    **Autenticación:** `Authorization: Bearer <token>` obtenido en `POST /auth/login`.
+
+    **Formato de error uniforme (RNF-13):**
+    ```json
+    { "ok": false, "error": { "codigo": "RN-09", "mensaje": "La puja debe ser de al menos $5.000.000 ...", "detalles": [] } }
+    ```
+
+    **Códigos HTTP (RNF-12):** 400 formato inválido · 401 sin sesión / credenciales / firma inválida ·
+    403 acción no permitida · 404 recurso inexistente · 409 conflicto (RN-16, RN-20, RN-22) ·
+    422 regla de negocio incumplida (por ejemplo una puja rechazada) · 500 error interno.
+
+    ## WebSockets (Socket.IO en `http://localhost:5000`)
+    Conectarse con `io(url, { auth: { token } })`. Sin token válido la conexión se rechaza con `NO_AUTENTICADO`.
+
+    | Dirección | Evento | Datos |
+    |---|---|---|
+    | cliente → servidor | `suscribirse-subasta` | `subastaId` (string) |
+    | cliente → servidor | `desuscribirse-subasta` | `subastaId` |
+    | cliente → servidor | `suscribirse-listado` / `desuscribirse-listado` | — |
+    | servidor → suscritos | `nueva-puja` | `{ subastaId, valor, postorId, postorNombre, fecha, totalPujas, montoMinimoSiguiente }` |
+    | servidor → suscritos | `subasta-estado` | `{ subastaId, estado, titulo, ganadorId, ganadorNombre, valorFinal, mensaje }` |
+    | servidor → suscritos | `participantes` | `{ subastaId, cantidad }` (RF-16) |
+    | servidor → un usuario | `notificacion` | `{ id, tipo, mensaje, subastaId, fecha, leida }` (p. ej. `PUJA_SUPERADA`) |
+
+    ## Webhook de pagos (contrato con la pasarela)
+    `POST /webhooks/pagos` con cuerpo `{ eventoId, ordenId, resultado: "APROBADO" | "RECHAZADO" }` y la cabecera
+    `x-pasarela-firma: sha256=<HMAC-SHA256 del cuerpo crudo usando WEBHOOK_SECRET>`.
+    Un mismo `eventoId` se procesa una sola vez y recibe siempre la misma respuesta (RN-19).
+servers:
+  - url: http://localhost:5000/api/v1
+tags:
+  - name: Usuarios
+  - name: Subastas
+  - name: Pujas
+  - name: Pagos
+  - name: Notificaciones
+paths:
+  /auth/register:
+    post:
+      tags: [Usuarios]
+      summary: Registrar usuario (RF-01)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nombre, correo, password]
+              properties:
+                nombre: { type: string, example: Sofía Gómez }
+                correo: { type: string, format: email, example: sofia@demo.com }
+                password: { type: string, minLength: 8, example: Demo12345 }
+      responses:
+        '201': { description: Usuario creado, content: { application/json: { schema: { $ref: '#/components/schemas/RespuestaUsuario' } } } }
+        '400': { $ref: '#/components/responses/Error' }
+        '409': { description: 'RN-22: el correo ya existe', content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+  /auth/login:
+    post:
+      tags: [Usuarios]
+      summary: Iniciar sesión (RF-02)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [correo, password]
+              properties:
+                correo: { type: string, example: sofia@demo.com }
+                password: { type: string, example: Demo12345 }
+      responses:
+        '200':
+          description: Sesión iniciada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      token: { type: string }
+                      usuario: { $ref: '#/components/schemas/Usuario' }
+        '401': { $ref: '#/components/responses/Error' }
+  /auth/profile:
+    get:
+      tags: [Usuarios]
+      summary: Perfil con subastas publicadas y en las que participó (RF-03)
+      security: [{ bearer: [] }]
+      responses:
+        '200':
+          description: Perfil
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      usuario: { $ref: '#/components/schemas/Usuario' }
+                      publicadas: { type: array, items: { $ref: '#/components/schemas/SubastaResumen' } }
+                      participadas: { type: array, items: { $ref: '#/components/schemas/SubastaResumen' } }
+                      estadisticas:
+                        type: object
+                        properties:
+                          publicadas: { type: integer }
+                          participando: { type: integer }
+                          ganadas: { type: integer }
+                          liderando: { type: integer }
+        '401': { $ref: '#/components/responses/Error' }
+  /categorias:
+    get:
+      tags: [Subastas]
+      summary: Listar categorías
+      responses:
+        '200':
+          description: Categorías
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  data: { type: array, items: { $ref: '#/components/schemas/Categoria' } }
+  /subastas:
+    get:
+      tags: [Subastas]
+      summary: Listado con filtros y paginación (RF-05)
+      description: Antes de responder se cierran de forma perezosa las subastas cuyo plazo terminó.
+      parameters:
+        - { in: query, name: categoria, schema: { type: string, example: tecnologia } }
+        - { in: query, name: estado, schema: { $ref: '#/components/schemas/EstadoSubasta' } }
+        - { in: query, name: texto, schema: { type: string }, description: Busca en nombre y descripción }
+        - { in: query, name: pagina, schema: { type: integer, default: 1, minimum: 1 } }
+        - { in: query, name: tamano, schema: { type: integer, default: 12, maximum: 50 } }
+      responses:
+        '200':
+          description: Página de subastas
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      items: { type: array, items: { $ref: '#/components/schemas/SubastaResumen' } }
+                      pagina: { type: integer }
+                      tamanoPagina: { type: integer }
+                      total: { type: integer }
+                      totalPaginas: { type: integer }
+                      conteoPorEstado: { type: object, additionalProperties: { type: integer } }
+    post:
+      tags: [Subastas]
+      summary: Publicar subasta (RF-04, RN-01, RN-02, RN-03)
+      description: El vendedor se toma del token, nunca del cuerpo.
+      security: [{ bearer: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nombre, descripcion, estadoConservacion, categoriaId, precioBase, incrementoMinimo, fechaCierre]
+              properties:
+                nombre: { type: string, example: Bicicleta de ruta }
+                descripcion: { type: string, example: Talla 54, grupo Shimano 105 }
+                estadoConservacion: { type: string, enum: [NUEVO, COMO_NUEVO, BUEN_ESTADO, USADO, PARA_REPARAR] }
+                categoriaId: { type: string, example: deportes }
+                imagenUrl: { type: string, nullable: true }
+                precioBase: { type: integer, example: 2800000 }
+                incrementoMinimo: { type: integer, example: 50000 }
+                fechaCierre: { type: string, format: date-time, example: '2026-11-20T18:00:00-05:00' }
+      responses:
+        '201': { description: Subasta publicada, content: { application/json: { schema: { type: object, properties: { ok: { type: boolean }, data: { $ref: '#/components/schemas/SubastaResumen' } } } } } }
+        '400': { $ref: '#/components/responses/Error' }
+        '401': { $ref: '#/components/responses/Error' }
+        '422': { description: Regla de publicación incumplida (RN-01, RN-02, RN-03), content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+  /subastas/{id}:
+    get:
+      tags: [Subastas]
+      summary: Detalle con estado, oferta vigente e historial (RF-06)
+      security: [{ bearer: [] }]
+      parameters: [{ $ref: '#/components/parameters/Id' }]
+      responses:
+        '200': { description: Detalle, content: { application/json: { schema: { type: object, properties: { ok: { type: boolean }, data: { $ref: '#/components/schemas/SubastaDetalle' } } } } } }
+        '404': { $ref: '#/components/responses/Error' }
+  /subastas/{id}/cancelar:
+    patch:
+      tags: [Subastas]
+      summary: Cancelar subasta sin pujas (RF-07, RN-04)
+      security: [{ bearer: [] }]
+      parameters: [{ $ref: '#/components/parameters/Id' }]
+      responses:
+        '200': { description: Cancelada }
+        '403': { description: Solo el vendedor puede cancelar, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+        '422': { description: 'RN-04: ya recibió pujas', content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+  /subastas/{id}/pujas:
+    get:
+      tags: [Pujas]
+      summary: Historial público de pujas (RN-23)
+      security: [{ bearer: [] }]
+      parameters: [{ $ref: '#/components/parameters/Id' }]
+      responses:
+        '200': { description: Historial, content: { application/json: { schema: { type: object, properties: { ok: { type: boolean }, data: { type: array, items: { $ref: '#/components/schemas/Puja' } } } } } } }
+    post:
+      tags: [Pujas]
+      summary: Registrar puja (RF-09, RF-10, RN-06 a RN-12)
+      description: |
+        Si la puja se acepta se difunde `nueva-puja` por WebSocket y el postor superado recibe `notificacion`.
+        Si se rechaza responde 422 con el código de la regla y el intento queda registrado (RN-12).
+      security: [{ bearer: [] }]
+      parameters: [{ $ref: '#/components/parameters/Id' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [valor]
+              properties:
+                valor: { type: integer, example: 4900000 }
+      responses:
+        '201':
+          description: Puja aceptada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      subastaId: { type: string }
+                      valor: { type: integer }
+                      fecha: { type: string, format: date-time }
+                      montoMinimoSiguiente: { type: integer }
+        '422':
+          description: Puja rechazada por una regla de negocio
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              example: { ok: false, error: { codigo: RN-10, mensaje: Usted ya es el mejor postor; no puede superar su propia puja } }
+  /subastas/{id}/intentos-fallidos:
+    get:
+      tags: [Pujas]
+      summary: Auditoría de pujas rechazadas (RF-11)
+      description: El vendedor ve todos los intentos de su subasta; los demás usuarios solo los propios.
+      security: [{ bearer: [] }]
+      parameters: [{ $ref: '#/components/parameters/Id' }]
+      responses:
+        '200':
+          description: Intentos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        postorId: { type: string }
+                        postorNombre: { type: string }
+                        valorOfrecido: { type: integer }
+                        codigo: { type: string, example: RN-09 }
+                        motivo: { type: string }
+                        fecha: { type: string, format: date-time }
+  /ordenes:
+    get:
+      tags: [Pagos]
+      summary: Órdenes de pago del usuario ganador (RF-17)
+      security: [{ bearer: [] }]
+      responses:
+        '200': { description: Órdenes, content: { application/json: { schema: { type: object, properties: { ok: { type: boolean }, data: { type: array, items: { $ref: '#/components/schemas/OrdenPago' } } } } } } }
+  /webhooks/pagos:
+    post:
+      tags: [Pagos]
+      summary: Webhook de la pasarela (RF-18, RF-19, RF-20, RN-17 a RN-19)
+      parameters:
+        - in: header
+          name: x-pasarela-firma
+          required: true
+          schema: { type: string, example: 'sha256=3f1c...' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [eventoId, ordenId, resultado]
+              properties:
+                eventoId: { type: string, example: evt_123 }
+                ordenId: { type: string, example: orden-1a2b }
+                resultado: { type: string, enum: [APROBADO, RECHAZADO] }
+      responses:
+        '200':
+          description: Evento procesado (o repetido; la respuesta es idéntica)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      eventoId: { type: string }
+                      ordenId: { type: string }
+                      procesado: { type: boolean }
+                      estadoOrden: { type: string, enum: [PENDIENTE, PAGADA, VENCIDA] }
+                      mensaje: { type: string }
+        '401': { description: 'RN-18: firma inválida; no se cambia nada', content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+        '404': { $ref: '#/components/responses/Error' }
+  /notificaciones:
+    get:
+      tags: [Notificaciones]
+      summary: Últimas notificaciones del usuario
+      security: [{ bearer: [] }]
+      responses:
+        '200': { description: Notificaciones, content: { application/json: { schema: { type: object, properties: { ok: { type: boolean }, data: { type: array, items: { $ref: '#/components/schemas/Notificacion' } } } } } } }
+  /notificaciones/{id}/leida:
+    patch:
+      tags: [Notificaciones]
+      summary: Marcar notificación como leída
+      security: [{ bearer: [] }]
+      parameters: [{ $ref: '#/components/parameters/Id' }]
+      responses:
+        '204': { description: Marcada }
+        '403': { $ref: '#/components/responses/Error' }
+components:
+  securitySchemes:
+    bearer: { type: http, scheme: bearer, bearerFormat: JWT }
+  parameters:
+    Id: { in: path, name: id, required: true, schema: { type: string } }
+  responses:
+    Error:
+      description: Error con formato uniforme
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+  schemas:
+    Error:
+      type: object
+      properties:
+        ok: { type: boolean, example: false }
+        error:
+          type: object
+          properties:
+            codigo: { type: string, example: RN-09 }
+            mensaje: { type: string }
+            detalles: { type: array, items: { type: string } }
+    EstadoSubasta: { type: string, enum: [ABIERTA, CANCELADA, DESIERTA, CERRADA, PAGADA, INCUMPLIDA] }
+    Usuario:
+      type: object
+      properties:
+        id: { type: string }
+        nombre: { type: string }
+        correo: { type: string }
+        fechaRegistro: { type: string, format: date-time }
+    RespuestaUsuario:
+      type: object
+      properties:
+        ok: { type: boolean }
+        data: { $ref: '#/components/schemas/Usuario' }
+    Categoria:
+      type: object
+      properties:
+        id: { type: string }
+        nombre: { type: string }
+        descripcion: { type: string }
+    SubastaResumen:
+      type: object
+      properties:
+        id: { type: string }
+        titulo: { type: string }
+        imagenUrl: { type: string, nullable: true }
+        categoriaId: { type: string }
+        categoriaNombre: { type: string }
+        estadoConservacion: { type: string }
+        estado: { $ref: '#/components/schemas/EstadoSubasta' }
+        precioBase: { type: integer }
+        incrementoMinimo: { type: integer }
+        ofertaVigente: { type: integer, nullable: true }
+        montoMinimoSiguiente: { type: integer }
+        totalPujas: { type: integer }
+        fechaPublicacion: { type: string, format: date-time }
+        fechaCierre: { type: string, format: date-time }
+        vendedorId: { type: string }
+        vendedorNombre: { type: string }
+        ganadorId: { type: string, nullable: true }
+        ganadorNombre: { type: string, nullable: true }
+    Puja:
+      type: object
+      description: Sin datos de contacto del postor (RN-23)
+      properties:
+        postorId: { type: string }
+        postorNombre: { type: string }
+        valor: { type: integer }
+        fecha: { type: string, format: date-time }
+    OrdenPago:
+      type: object
+      properties:
+        id: { type: string }
+        subastaId: { type: string }
+        titulo: { type: string }
+        valor: { type: integer }
+        estado: { type: string, enum: [PENDIENTE, PAGADA, VENCIDA] }
+        fechaEmision: { type: string, format: date-time }
+        fechaLimite: { type: string, format: date-time }
+        fechaPago: { type: string, format: date-time, nullable: true }
+    SubastaDetalle:
+      allOf:
+        - $ref: '#/components/schemas/SubastaResumen'
+        - type: object
+          properties:
+            descripcion: { type: string }
+            historial: { type: array, items: { $ref: '#/components/schemas/Puja' } }
+            totalParticipantes: { type: integer }
+            mejorPostorId: { type: string, nullable: true }
+            ordenPago:
+              allOf: [{ $ref: '#/components/schemas/OrdenPago' }]
+              nullable: true
+              description: Solo visible para el ganador y el vendedor
+    Notificacion:
+      type: object
+      properties:
+        id: { type: string }
+        tipo: { type: string, example: PUJA_SUPERADA }
+        mensaje: { type: string }
+        subastaId: { type: string, nullable: true }
+        fecha: { type: string, format: date-time }
+        leida: { type: boolean }

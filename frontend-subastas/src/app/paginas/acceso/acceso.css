@@ -1,0 +1,28 @@
+.acceso { display: grid; grid-template-columns: 1.1fr 1fr; min-height: calc(100vh - 68px); }
+.lado-marca { background: radial-gradient(circle at 20% 20%, #2f6fed 0%, transparent 45%), linear-gradient(135deg, var(--azul-900), var(--azul-700)); color: #fff; display: grid; place-items: center; padding: 48px; }
+.contenido-marca { max-width: 600px; }
+.etiqueta { display: inline-flex; align-items: center; gap: 8px; background: rgba(255, 199, 44, .15); color: var(--amarillo); font-weight: 700; font-size: 13px; padding: 6px 14px; border-radius: 999px; margin-bottom: 18px; }
+.punto-vivo { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 0 4px rgba(34, 197, 94, .25); }
+h1 { font-size: clamp(32px, 4vw, 46px); font-weight: 800; }
+h1 span { color: var(--amarillo); }
+.bajada { color: #cbd5f5; font-size: 17px; max-width: 500px; }
+.ventajas { list-style: none; padding: 0; margin: 26px 0 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.ventajas li { display: flex; gap: 12px; align-items: flex-start; background: rgba(255, 255, 255, .07); border: 1px solid rgba(255, 255, 255, .08); padding: 14px; border-radius: 14px; }
+.ventajas strong { display: block; font-size: 15px; }
+.ventajas small { color: #b8c4e6; font-size: 13px; line-height: 1.4; }
+.icono { flex: none; width: 36px; height: 36px; border-radius: 10px; background: var(--amarillo); display: grid; place-items: center; }
+.icono svg { width: 20px; fill: none; stroke: var(--azul-900); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.cifras { display: flex; gap: 28px; margin-top: 26px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, .12); }
+.cifras div { display: grid; }
+.cifras strong { font-family: var(--fuente-titulos); font-size: 20px; color: #fff; }
+.cifras small { color: #9fb0d9; font-size: 12.5px; }
+.lado-formulario { display: grid; place-items: center; padding: 40px 20px; }
+.formulario { width: min(430px, 100%); padding: 32px; }
+.subtitulo { color: var(--texto-suave); margin-top: -4px; margin-bottom: 22px; }
+app-alerta-error { display: block; margin-bottom: 14px; }
+.cambiar { text-align: center; margin: 18px 0 0; color: var(--texto-suave); }
+.demo { margin-top: 22px; padding-top: 18px; border-top: 1px dashed var(--gris-300); text-align: center; }
+.chips { display: flex; gap: 8px; justify-content: center; margin-top: 10px; flex-wrap: wrap; }
+.chips button { border: 1.5px solid var(--gris-300); background: var(--gris-50); border-radius: 999px; padding: 6px 14px; cursor: pointer; font-weight: 600; }
+.chips button:hover { border-color: var(--azul-500); color: var(--azul-700); }
+@media (max-width: 900px) { .acceso { grid-template-columns: 1fr; } .lado-marca { padding: 36px 24px; } .ventajas { grid-template-columns: 1fr; } .cifras { flex-wrap: wrap; } }

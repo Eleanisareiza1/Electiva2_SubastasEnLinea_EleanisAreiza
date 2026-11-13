@@ -1,0 +1,10 @@
+// Tipos de aviso que la plataforma envía a un usuario.
+export enum TipoNotificacion {
+    PUJA_SUPERADA = "PUJA_SUPERADA",
+    SUBASTA_GANADA = "SUBASTA_GANADA",
+    SUBASTA_VENDIDA = "SUBASTA_VENDIDA",
+    SUBASTA_DESIERTA = "SUBASTA_DESIERTA",
+    PAGO_CONFIRMADO = "PAGO_CONFIRMADO",
+    PAGO_RECHAZADO = "PAGO_RECHAZADO",
+    ORDEN_VENCIDA = "ORDEN_VENCIDA"
+}

@@ -1,0 +1,58 @@
+.pagina { padding-top: 18px; }
+.migas { font-size: 13.5px; color: var(--texto-suave); margin-bottom: 14px; }
+.migas a { color: var(--azul-700); text-decoration: none; font-weight: 600; }
+.banda-cierre { background: var(--azul-900); color: #fff; padding: 14px 18px; border-radius: 12px; margin-bottom: 16px; border-left: 6px solid var(--amarillo); }
+.banda-cierre[data-estado='DESIERTA'], .banda-cierre[data-estado='CANCELADA'] { border-left-color: var(--gris-300); }
+.banda-cierre[data-estado='INCUMPLIDA'] { border-left-color: var(--rojo); }
+.rejilla { display: grid; grid-template-columns: 1fr 360px; gap: 22px; align-items: start; }
+.principal { display: grid; gap: 18px; min-width: 0; }
+.foto-tarjeta { padding: 12px; }
+.encabezado-articulo { display: flex; justify-content: space-between; gap: 14px; align-items: flex-start; }
+h1 { font-size: 26px; color: var(--azul-900); margin-top: 6px; }
+.descripcion { color: #334155; white-space: pre-line; }
+.datos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0 0; }
+.datos div { background: var(--gris-50); border-radius: 10px; padding: 10px 12px; }
+dt { font-size: 12px; color: var(--texto-suave); font-weight: 600; }
+dd { margin: 2px 0 0; font-weight: 700; }
+.titulo-bloque { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 12px; }
+.titulo-bloque h3 { margin: 0; }
+.historial { width: 100%; border-collapse: collapse; font-size: 14px; }
+.historial th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--texto-suave); padding: 8px; border-bottom: 2px solid var(--gris-200); }
+.historial td { padding: 10px 8px; border-bottom: 1px solid var(--gris-100); }
+.historial .valor { font-weight: 800; color: var(--azul-900); }
+.historial tr.lider td { background: #fffbea; }
+.historial tr.nueva td { animation: nueva 2s ease-out; }
+@keyframes nueva { 0% { background: #ffe58a; } 100% { background: #fffbea; } }
+.historial em { color: var(--azul-500); font-style: normal; font-weight: 600; }
+.corona { margin-right: 4px; }
+.codigo { font-size: 11px; font-weight: 800; background: #ffe4e4; color: var(--rojo); padding: 2px 6px; border-radius: 6px; }
+.suave { color: var(--texto-suave); margin: 0; }
+
+.panel { position: sticky; top: 16px; display: grid; gap: 16px; }
+.panel-puja { display: grid; gap: 12px; border-top: 5px solid var(--naranja); }
+.en-linea { font-size: 13px; color: var(--texto-suave); display: flex; align-items: center; gap: 8px; font-weight: 600; }
+.punto { width: 9px; height: 9px; border-radius: 50%; background: var(--rojo); animation: latido 1.2s infinite; }
+@keyframes latido { 50% { opacity: .3; } }
+.oferta { background: var(--gris-100); border-radius: 12px; padding: 16px; text-align: center; display: grid; gap: 2px; }
+.oferta small { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--texto-suave); font-weight: 700; }
+.oferta strong { font-family: var(--fuente-titulos); font-size: 32px; color: var(--azul-900); }
+.lider { color: var(--verde); font-weight: 700; font-size: 14px; }
+.formulario-puja { display: grid; gap: 10px; }
+.formulario-puja label { font-weight: 600; font-size: 14px; }
+.entrada-monto { display: flex; align-items: center; border: 2px solid var(--gris-300); border-radius: 12px; padding: 0 12px; background: #fff; }
+.entrada-monto:focus-within { border-color: var(--naranja); }
+.entrada-monto span { font-weight: 800; color: var(--texto-suave); }
+.entrada-monto input { border: 0; outline: none; padding: 12px 8px; font-size: 20px; font-weight: 800; width: 100%; }
+.rapidos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.rapidos button { border: 1.5px solid var(--gris-300); background: #fff; border-radius: 8px; padding: 7px 4px; cursor: pointer; font-size: 12px; font-weight: 700; }
+.rapidos button:hover { border-color: var(--naranja); color: var(--naranja-oscuro); }
+.grande { padding: 15px; font-size: 16px; }
+.nota { color: var(--texto-suave); font-size: 12px; text-align: center; }
+.nota-vendedor, .resultado p { margin: 0; color: #334155; }
+.orden { display: grid; gap: 8px; border-top: 5px solid var(--amarillo); }
+.orden strong { font-family: var(--fuente-titulos); font-size: 26px; color: var(--azul-900); }
+.orden p { margin: 0; color: var(--texto-suave); font-size: 14px; }
+.estado-orden { justify-self: start; font-size: 11px; font-weight: 800; padding: 4px 9px; border-radius: 999px; background: #fff4d6; color: #8a5a00; }
+.estado-orden[data-estado='PAGADA'] { background: #dcfce7; color: #166534; }
+.estado-orden[data-estado='VENCIDA'] { background: #ffe4e4; color: var(--rojo); }
+@media (max-width: 980px) { .rejilla { grid-template-columns: 1fr; } .panel { position: static; } .datos { grid-template-columns: 1fr 1fr; } }

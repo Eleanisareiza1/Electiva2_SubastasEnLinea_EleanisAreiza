@@ -1,0 +1,87 @@
+<div class="contenedor pagina">
+  <div class="cabecera">
+    <div>
+      <span class="etiqueta-seccion">Nueva subasta</span>
+      <h1>Publica tu artículo</h1>
+      <p>Define el precio base, el incremento mínimo y el cierre. Una vez publicada, estas condiciones no se pueden modificar.</p>
+    </div>
+    <a routerLink="/subastas" class="boton boton-contorno">Volver</a>
+  </div>
+
+  <app-alerta-error [error]="error()" />
+
+  <form class="rejilla" (ngSubmit)="publicar()">
+    <section class="tarjeta">
+      <h3><span class="numero">1</span> El artículo</h3>
+      <div class="campo">
+        <label for="nombre">Nombre</label>
+        <input id="nombre" name="nombre" maxlength="120" required placeholder="Ej.: Bicicleta de ruta talla 54"
+               [ngModel]="nombre()" (ngModelChange)="nombre.set($event)" />
+      </div>
+      <div class="campo">
+        <label for="descripcion">Descripción</label>
+        <textarea id="descripcion" name="descripcion" maxlength="2000" required placeholder="Estado, accesorios, detalles importantes…"
+                  [ngModel]="descripcion()" (ngModelChange)="descripcion.set($event)"></textarea>
+        <small>{{ descripcion().length }}/2000 · mínimo 10 caracteres</small>
+      </div>
+      <div class="dos">
+        <div class="campo">
+          <label for="categoria">Categoría</label>
+          <select id="categoria" name="categoria" [ngModel]="categoriaId()" (ngModelChange)="categoriaId.set($event)">
+            @for (c of categorias(); track c.id) { <option [value]="c.id">{{ c.nombre }}</option> }
+          </select>
+        </div>
+        <div class="campo">
+          <label for="conservacion">Estado de conservación</label>
+          <select id="conservacion" name="conservacion" [ngModel]="estadoConservacion()" (ngModelChange)="estadoConservacion.set($event)">
+            @for (e of conservaciones; track e.valor) { <option [value]="e.valor">{{ e.etiqueta }}</option> }
+          </select>
+        </div>
+      </div>
+      <div class="campo">
+        <label for="imagen">Foto (URL, opcional)</label>
+        <input id="imagen" name="imagen" type="url" placeholder="https://…" [ngModel]="imagenUrl()" (ngModelChange)="imagenUrl.set($event)" />
+      </div>
+    </section>
+
+    <section class="tarjeta">
+      <h3><span class="numero">2</span> Condiciones de la subasta</h3>
+      <div class="dos">
+        <div class="campo">
+          <label for="base">Precio base (COP)</label>
+          <input id="base" name="base" type="number" min="1" step="1" required placeholder="1000000"
+                 [ngModel]="precioBase()" (ngModelChange)="precioBase.set($event)" />
+          <small>{{ precioBase() | pesos }}</small>
+        </div>
+        <div class="campo">
+          <label for="incremento">Incremento mínimo (COP)</label>
+          <input id="incremento" name="incremento" type="number" min="1" step="1" required placeholder="50000"
+                 [ngModel]="incrementoMinimo()" (ngModelChange)="incrementoMinimo.set($event)" />
+          <small>{{ incrementoMinimo() | pesos }}</small>
+        </div>
+      </div>
+      <div class="campo">
+        <label for="cierre">Fecha y hora de cierre</label>
+        <input id="cierre" name="cierre" type="datetime-local" required [min]="minimoFecha" [max]="maximoFecha"
+               [ngModel]="fechaCierre()" (ngModelChange)="fechaCierre.set($event)" />
+        <small>{{ duracion() }} · entre 1 hora y 30 días.</small>
+      </div>
+
+      <div class="vista-previa">
+        <span class="etiqueta-seccion">Vista previa</span>
+        <div class="previa">
+          <app-imagen-articulo [url]="imagenUrl() || null" [titulo]="nombre()" [categoriaId]="categoriaId()" [categoria]="categoriaNombre()" />
+          <div>
+            <strong>{{ nombre() || 'Nombre del artículo' }}</strong>
+            <small>{{ categoriaNombre() }}</small>
+            <span class="precio">{{ precioBase() | pesos }}</span>
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="boton boton-naranja boton-bloque" [disabled]="enviando()">
+        {{ enviando() ? 'Publicando…' : 'Publicar subasta' }}
+      </button>
+    </section>
+  </form>
+</div>
