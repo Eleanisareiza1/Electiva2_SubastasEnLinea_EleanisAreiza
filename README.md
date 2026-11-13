@@ -1,529 +1,229 @@
 # Plataforma de Subastas en Línea
 
-## Información General
+**Asignatura:** Electiva II – Desarrollo de Software · **Programa:** Ingeniería de Software
+**Equipo:** Equipo Ele · **Integrante:** Eleanis Areiza López
 
-**Asignatura:** Electiva II - Desarrollo de Software
+Plataforma donde un vendedor publica un artículo con precio base y fecha de cierre, los usuarios
+registrados pujan en tiempo real y, al cerrar, la oferta más alta gana y genera una orden de pago
+que confirma una pasarela externa mediante un webhook.
 
-**Programa:** Ingeniería de Software
-
-**Proyecto:** Plataforma de Subastas en Línea
-
-**Equipo:** Equipo Ele
-
-**Integrante:** - Eleanis Areiza López
-
-# Estado Académico
-
-Entrega 1: Modelado del dominio y recursos iniciales de la API.
-
-Entrega 2: API completa con persistencia real mediante MongoDB Atlas y comunicación en tiempo real mediante Socket.IO.
----
-
-## Descripción del Proyecto
-
-La Plataforma de Subastas en Línea permite la publicación y gestión de subastas, el registro de pujas por parte de los usuarios y la difusión de eventos en tiempo real mediante WebSockets.
-
-El sistema fue construido siguiendo los principios de Arquitectura Hexagonal, manteniendo el dominio desacoplado de los mecanismos de persistencia, transporte y comunicación.
-
-Actualmente la aplicación ofrece:
-
-- Creación de subastas.
-- Consulta de subastas.
-- Registro de pujas.
-- Cancelación de subastas.
-- Cierre de subastas.
-- Persistencia real mediante MongoDB Atlas.
-- Comunicación en tiempo real mediante Socket.IO.
-- Notificaciones de nuevas pujas.
-- Notificaciones de usuarios superados.
-- Middleware global para manejo de errores.
-- Consulta de intentos de puja fallidos.
-- Generación de órdenes de pago para el ganador.
+| Entrega | Contenido | Estado |
+|---|---|---|
+| 1 | Modelado del dominio y recursos de la API | ✔ |
+| 2 | API completa, persistencia real (MongoDB) y tiempo real (Socket.IO) | ✔ |
+| 3 | Aplicación web (Angular) integrada, webhook de pagos terminado | ✔ |
 
 ---
 
-# Arquitectura Utilizada
-
-El proyecto está organizado siguiendo el modelo de Arquitectura Hexagonal.
-
-La intención principal es mantener las reglas del negocio independientes de frameworks, librerías externas, mecanismos de persistencia y detalles de infraestructura.
-
-## Correspondencia con Arquitectura Hexagonal
-
-| Carpeta | Capa |
-|----------|----------|
-| domain | Dominio |
-| application | Aplicación |
-| infrastructure | Infraestructura |
-
-## Capas implementadas
-
-### Domain
-
-Contiene las entidades, puertos y reglas de negocio.
-
-Archivos:
-
-Subasta.ts
-Puja.ts
-OrdenPago.ts
-IntentoPujaFallida.ts
-subastaRepository.ts
-
-valueObjects/
-├── Dinero.ts
-└── EstadoSubasta.ts
-
-Responsabilidades:
-
-- Contener las reglas de negocio.
-- Garantizar la consistencia del dominio.
-- Definir los contratos necesarios para acceder a la persistencia.
-- Permanecer independiente de Express, bases de datos o infraestructura.
-
----
-
-### Application
-
-Contiene los casos de uso.
-
-Ruta:src/application
-Archivos:
-
-CrearSubasta.ts
-ConsultarSubasta.ts
-ConsultarIntentosFallidos.ts
-RegistrarPuja.ts
-CancelarSubasta.ts
-CerrarSubasta.ts
-
-ports/
-└── NotificacionPort.ts
-
-
-Responsabilidades:
-
-- Coordinar la ejecución del dominio.
-- Utilizar los puertos definidos en el dominio.
-- Orquestar las operaciones del sistema.
-- Mantenerse independiente de HTTP y de los detalles de la infraestructura.
-
----
-
-### Infrastructure
-
-Contiene los adaptadores de entrada y salida.
-
-Ruta:src/infrastructure
-Archivos:
-
-controllers/
-├── SubastaController.ts
-
-repositories/
-├── mongodb.ts
-├── MongoSubastaRepository.ts
-├── repositories.ts
-└── SubastaModel.ts
-
-middlewares/
-└── errorHandler.ts
-
-routes/
-└── subastaRoutes.ts
-
-socket/
-├── socketServer.ts
-└── SocketIONotificacionAdapter.ts
-
-Responsabilidades:
-
-- Recibir solicitudes HTTP.
-- Exponer la API REST.
-- Implementar repositorios concretos.
-- Conectar la aplicación con el mundo exterior.
-
----
-
-# Estructura del Proyecto
-
-
-src
-│
-├── application
-│   ├── ports
-│   │   └── NotificacionPort.ts
-│   │
-│   ├── CrearSubasta.ts
-│   ├── ConsultarSubasta.ts
-│   ├── ConsultarIntentosFallidos.ts
-│   ├── RegistrarPuja.ts
-│   ├── CancelarSubasta.ts
-│   └── CerrarSubasta.ts
-│
-├── domain
-│   ├── valueObjects
-│   │   ├── Dinero.ts
-│   │   └── EstadoSubasta.ts
-│   │
-│   ├── Subasta.ts
-│   ├── Puja.ts
-│   ├── OrdenPago.ts
-│   ├── IntentoPujaFallida.ts
-│   └── subastaRepository.ts
-│
-├── infrastructure
-│   ├── controllers
-│   │   └── SubastaController.ts
-│   │
-│   ├── middlewares
-│   │   └── errorHandler.ts
-│   │
-│   ├── repositories
-│   │   ├── mongodb.ts
-│   │   ├── MongoSubastaRepository.ts
-│   │   ├── repositories.ts
-│   │   └── SubastaModel.ts
-│   │
-│   ├── routes
-│   │   └── subastaRoutes.ts
-│   │
-│   └── socket
-│       ├── socketServer.ts
-│       └── SocketIONotificacionAdapter.ts
-│
-├── tests
-│
-├── app.ts
-└── server.ts
-
-
----
-
-# Reglas de Negocio Implementadas
-
-## Publicación de Subastas
-
-### RN-01
-Toda subasta debe tener:
-- Precio base mayor que cero.
-- Incremento mínimo mayor que cero.
-
-### RN-02
-
-La fecha de cierre debe ser posterior a la fecha de publicación.
-
-### RN-03
-La duración de la subasta debe ser:
-- Mínimo una hora.
-- Máximo treinta días.
-
----
-
-## Gestión de Subasta
-
-### RN-04
-No se puede cancelar una subasta que ya haya recibido pujas.
-
-### RN-05
-No se pueden registrar pujas en una subasta cancelada.
-
-### RN-13
-Una subasta solo puede cerrarse cuando ha llegado su fecha de cierre.
-
-### RN-12
-Toda puja rechazada debe registrarse como intento fallido junto con el motivo del rechazo.
-
-### RN-14
-Una subasta que llega a su fecha de cierre sin haber recibido ninguna puja se declara desierta y no genera obligación de pago.
-
-### RN-15
-Cuando una subasta se adjudica, se genera una orden de pago para el ganador con un plazo de cuarenta y ocho horas.
-
-### RN-16
-Una subasta no puede cerrarse más de una vez.
-
-## Gestión de Pujas
-
-### RN-07
-El vendedor no puede pujar sobre su propia subasta. 
-
-### RN-08
-La primera puja debe ser mayor o igual al precio base de la subasta.
-
-### RN-09
-Toda puja posterior debe superar la oferta vigente más el incremento mínimo definido para la subasta.
-
-### RN-10
-Un usuario no puede superar su propia puja cuando ya es el mejor postor de la subasta.
-
----
-
-## Reglas Monetarias
-
-### RN-21
-Los valores monetarios:
-- No pueden ser negativos.
-- No pueden contener valores decimales
-
-# Recursos de la API
-
-## Crear Subasta
-
-**Endpoint**
-POST http://localhost:5000/api/v1/subastas
-
-**Body**
-json
-{
-  "titulo": "Laptop Gamer",
-  "precioBase": 1000000,
-  "incrementoMinimo": 50000,
-  "fechaCierre": "2026-09-15T12:00:00"
-}
-
----
-
-## Consultar Subastas
-
-**Endpoint**
-GET http://localhost:5000/api/v1/subastas
-
----
-
-## Registrar Puja
-
-**Endpoint**
-POST http://localhost:5000/api/v1/subastas/:indice/pujas
-
-
-**Body**
-json
-{
-  "usuarioId": "usuario1",
-  "valor": 1000000
-}
-
-
-## Cancelar Subasta
-
-**Endpoint**
-
-PATCH http://localhost:5000/api/v1/subastas/:indice/cancelar
-
-Permite cancelar una subasta que aún no ha recibido pujas.
-
-## Cerrar Subasta
-
-**Endpoint**
-
-PATCH http://localhost:5000/api/v1/subastas/:indice/cerrar
-
-Permite cerrar una subasta cuando se cumplen las condiciones definidas por las reglas del negocio.
-
-## Consultar Intentos Fallidos
-
-**Endpoint**
-
-GET /api/v1/subastas/:indice/intentos-fallidos
-
-Permite consultar los intentos de puja rechazados y sus motivos.
-
-
-
----
-# Casos de Uso Implementados
-
-- CrearSubasta
-- ConsultarSubasta
-- ConsultarIntentosFallidos
-- RegistrarPuja
-- CancelarSubasta
-- CerrarSubasta
-
-
-# Value Objects
-
-## Dinero
-
-Representa valores monetarios dentro del dominio.
-
-Restricciones:
-
-- No permite valores negativos.
-- No permite decimales.
-
-## EstadoSubasta
-
-Representa los posibles estados de una subasta:
-
-- ABIERTA
-- CANCELADA
-- CERRADA
-- DESIERTA
-
-
-# Persistencia
-
-La aplicación utiliza persistencia real mediante MongoDB Atlas.
-
-Adaptador:
-
-MongoSubastaRepository
-
-Tecnología utilizada:
-
-- MongoDB Atlas
-- Mongoose
-
-Puerto:
-
-SubastaRepository
-
-Gracias a la Arquitectura Hexagonal fue posible sustituir la implementación inicial en memoria por MongoDB sin modificar las entidades del dominio ni los casos de uso.
-
-La persistencia permite almacenar:
-
-- Subastas
-- Pujas
-- Intentos de puja fallidos
-- Estados de subasta
-- Ganadores
-- Órdenes de pago
----
-# Comunicación en Tiempo Real
-
-La aplicación utiliza Socket.IO para notificar cambios importantes a los clientes conectados.
-
-Los eventos son emitidos a través del puerto:
-
-NotificacionPort
-
-e implementados mediante:
-
-SocketIONotificacionAdapter
-
-Esto permite mantener desacoplada la lógica de negocio de la tecnología de comunicación utilizada.
-
-## Eventos Implementados
-
-### suscribirse-subasta
-
-Permite que un cliente se una a la sala de una subasta específica.
-
-### nueva-puja
-
-Se emite cuando una puja válida es registrada correctamente.
-
-### usuario-superado
-
-Se emite cuando un usuario deja de ser el líder de una subasta.
-
-### subasta-cerrada
-
-Se emite cuando una subasta pasa al estado cerrada.
-
-# Tecnologías Utilizadas
-
-- Node.js
-- TypeScript
-- Express.js
-- MongoDB Atlas
-- Mongoose
-- Socket.IO
-- Jest
-
-# Middleware Global 
-
-La aplicación implementa un middleware global para el manejo centralizado de errores. 
-
-Archivo: errorHandler.ts 
-
-Su responsabilidad es capturar excepciones de la aplicación y devolver respuestas HTTP consistentes al cliente.
-
-# Variables de Entorno
-
-El proyecto utiliza un archivo '.env'.
-
-Ejemplo:
-
-```env
-PORT=5000
-MONGODB_URI=tu_cadena_de_conexion
+## 1. Ejecución rápida (desde cero)
+
+Requisitos: **Node.js 20 o superior** y npm. MongoDB Atlas es opcional (ver `PERSISTENCIA`).
+
+```bash
+# 1. Clonar e instalar la API
+git clone https://github.com/Eleanisareiza1/Electiva2_SubastasEnLinea_EleanisAreiza.git
+cd Electiva2_SubastasEnLinea_EleanisAreiza
+npm install
+
+# 2. Configurar variables de entorno
+cp .env.example .env        # en Windows: copy .env.example .env
+#    completar JWT_SECRET, WEBHOOK_SECRET y MONGODB_URI (o PERSISTENCIA=memoria)
+
+# 3. Instalar el frontend
+cd frontend-subastas
+npm install
+cd ..
 ```
-El archivo `.env` no debe almacenarse en el repositorio.
 
----
-# Instalación
+Se necesitan **tres terminales**:
 
-1. Clonar el repositorio: git clone URL_DEL_REPOSITORIO
+| Terminal | Comando | Dirección |
+|---|---|---|
+| API REST + WebSockets | `npm run dev` | http://localhost:5000/api/v1 |
+| Pasarela de pagos simulada | `npm run pasarela` | http://localhost:5050/checkout |
+| Aplicación web | `cd frontend-subastas && npm start` | http://localhost:4200 |
 
+Con `SEMBRAR_DEMO=true` la API crea al iniciar tres usuarios (`valentina@demo.com`, `sofia@demo.com`,
+`mateo@demo.com`, contraseña `Demo12345`) y ocho subastas: una que cierra en pocos minutos, una ya
+adjudicada con orden de pago pendiente y una desierta, para recorrer el ciclo completo en la sustentación.
 
-2. Ingresar al proyecto: cd Electiva2_SubastasEnLinea_EleanisAreiza
+Para compilar y ejecutar en modo producción: `npm run build && npm start`.
 
+## 2. Variables de entorno
 
-3. Instalar dependencias: npm install
+Todas se leen en `src/infrastructure/config/entorno.ts` (RNF-10). El archivo `.env.example` las lista sin valores reales.
 
+| Variable | Obligatoria | Descripción |
+|---|---|---|
+| `PORT` | No (5000) | Puerto de la API REST y de WebSockets |
+| `PERSISTENCIA` | No | `mongo` o `memoria`. Si se omite, usa `mongo` cuando hay `MONGODB_URI` |
+| `MONGODB_URI` | Con `mongo` | Cadena de conexión de MongoDB Atlas |
+| `JWT_SECRET` | Sí | Secreto para firmar los tokens de sesión |
+| `JWT_EXPIRACION` | No (8h) | Vigencia del token |
+| `WEBHOOK_SECRET` | Sí | Secreto compartido con la pasarela para firmar el webhook (HMAC-SHA256) |
+| `CORS_ORIGENES` | No | Orígenes del frontend permitidos, separados por coma |
+| `SEMBRAR_DEMO` | No (false) | `true` crea los datos de demostración si no existen |
+| `PASARELA_PUERTO` | No (5050) | Puerto del simulador de la pasarela |
+| `PASARELA_API_URL` | No | URL de la API a la que la pasarela envía el webhook |
 
----
+> Con MongoDB se usan colecciones nuevas con prefijo `plataforma_` (las de la entrega 2 no se reutilizan porque el modelo cambió).
 
-# Pruebas
+## 3. Pruebas
 
-Ejecutar:
-npm test
+```bash
+npm test            # 39 pruebas: dominio + API de punta a punta con persistencia en memoria
+npm run typecheck   # verificación de tipos en modo estricto
+```
 
+- `src/tests/domain/` – reglas de publicación, aceptación y rechazo de pujas, cierre, adjudicación y pago (RNF-14).
+- `src/tests/http/` – códigos HTTP, formato de error, auditoría de rechazos, filtros, cierre perezoso y webhook idempotente.
 
-# Compilación
-npm run build
+## 4. Arquitectura hexagonal
 
+```
+                ┌──────────────────────── infraestructura ────────────────────────┐
+  Angular ──HTTP──▶ http/ (rutas, controladores, validación de formato, errores)   │
+  Angular ◀──WS───  socket/ (SocketIONotificacionAdapter) ◀── NotificacionPort ─┐  │
+  Pasarela ─HTTP──▶ http/controllers/WebhookController (verifica firma)         │  │
+                │                     │                                         │  │
+                │          ┌──────── aplicación ────────┐                       │  │
+                │          │ casos de uso + servicios    │── puertos de salida ──┘  │
+                │          │   ┌──── dominio ────┐       │                          │
+                │          │   │ Subasta (raíz)  │       │── repositorios ──▶ repositories/
+                │          │   │ reglas RN-01…23 │       │   (puertos)       mongo/ y memoria/
+                │          │   └─────────────────┘       │                          │
+                │          └─────────────────────────────┘                          │
+                └────────────────────────────────────────────────────────────────────┘
+```
 
-# Ejecución
+| Carpeta | Capa | Responsabilidad |
+|---|---|---|
+| `src/domain/` | Dominio | Entidades, objetos de valor y **todas las reglas de negocio**. No importa Express, Socket.IO, Mongoose ni JWT (RNF-02). |
+| `src/domain/valueObjects/` | Dominio | `Dinero`, `Correo` y los estados: inmutables y autovalidados (RNF-07). |
+| `src/domain/repositories/` | Dominio | Puertos de persistencia (interfaces) (RNF-04). |
+| `src/domain/errors/` | Dominio | `ErrorDominio` con código de regla y tipo, sin conocer HTTP. |
+| `src/application/useCases/` | Aplicación | Un caso de uso por operación; orquesta: recupera el agregado, le pide actuar y guarda. |
+| `src/application/ports/` | Aplicación | Puertos de salida: `NotificacionPort` (tiempo real), `CifradorContrasenas`, `GeneradorTokens`, `GeneradorIds`. |
+| `src/application/services/` | Aplicación | Cierre perezoso (`SincronizadorSubastas`), avisos de negocio (`AvisadorNegocio`) y vistas sin datos de contacto. |
+| `src/infrastructure/http/` | Infraestructura | Rutas por recurso, controladores sin reglas, validación de formato y manejo de errores. |
+| `src/infrastructure/socket/` | Infraestructura | Servidor Socket.IO y adaptador del `NotificacionPort`. |
+| `src/infrastructure/repositories/` | Infraestructura | Adaptadores `mongo/` y `memoria/` de los mismos puertos (RNF-06). |
+| `src/infrastructure/auth/` | Infraestructura | bcrypt, JWT, UUID y firma HMAC del webhook. |
+| `src/infrastructure/herramientas/` | Infraestructura | Datos de demostración y pasarela de pagos simulada. |
+| `src/infrastructure/contenedor.ts` | Infraestructura | Raíz de composición: decide qué adaptador implementa cada puerto. |
+| `frontend-subastas/` | Cliente | Aplicación Angular (ver sección 8). |
+| `docs/openapi.yaml` | Documentación | Especificación OpenAPI de la API REST, eventos WebSocket y contrato del webhook. |
 
-Iniciar la aplicación: npm run dev
+### Modelo de dominio
 
-Servidor disponible en: http://localhost:5000
+- **Raíz de agregado: `Subasta`.** La frontera de consistencia incluye `Articulo`, `Puja`, `IntentoPujaFallida`
+  y `OrdenPago`: ninguno se modifica sin pasar por la subasta, por eso las reglas no se pueden saltar.
+- **Entidades con identidad propia:** `Usuario`, `Categoria`, `Notificacion`, `EventoPago`.
+- **Objetos de valor:** `Dinero` (COP, entero, no negativo), `Correo` (normalizado), `EstadoSubasta`,
+  `EstadoPago`, `EstadoConservacion`, `ResultadoPago`, `TipoNotificacion`.
+- **Concepto adicional:** `ErrorDominio`, para que cada rechazo lleve el código de la regla incumplida.
 
-# Estrategia de Ramas
+Estados de la subasta: `ABIERTA → CANCELADA` (sin pujas) · `ABIERTA → DESIERTA` (cierre sin pujas) ·
+`ABIERTA → CERRADA` (adjudicada con orden pendiente) `→ PAGADA` (webhook aprobado) o `→ INCUMPLIDA` (orden vencida).
 
-El desarrollo del proyecto se realizó utilizando ramas de trabajo para aislar cambios antes de integrarlos a la rama principal.
+## 5. Dónde se cumple cada regla de negocio
 
-Ejemplo:
+| Regla | Lugar exacto |
+|---|---|
+| RN-01 precio base, incremento y cierre | `Subasta.publicar()` en `src/domain/Subasta.ts` |
+| RN-02 no nace vencida | `Subasta.publicar()` |
+| RN-03 entre 1 hora y 30 días | `Subasta.publicar()` (`DURACION_MINIMA_MS`, `DURACION_MAXIMA_MS`) |
+| RN-04 cancelar solo sin pujas | `Subasta.cancelar()` |
+| RN-05 datos inmutables | Propiedades `readonly` de `Subasta` y ausencia de métodos de modificación; `Dinero` inmutable |
+| RN-06 solo subastas abiertas | `Subasta.registrarPuja()` |
+| RN-07 el vendedor no puja | `Subasta.registrarPuja()` |
+| RN-08 primera puja ≥ precio base | `Subasta.registrarPuja()` |
+| RN-09 superar la vigente + incremento | `Subasta.registrarPuja()` |
+| RN-10 no superarse a sí mismo | `Subasta.registrarPuja()` |
+| RN-11 puja irrevocable | `Puja` (solo `readonly`); `Subasta.obtenerPujas()` devuelve una copia; no existe operación de retiro |
+| RN-12 auditoría de rechazos | `Subasta.rechazar()` + `RegistrarPuja` guarda la subasta también cuando se rechaza |
+| RN-13 adjudicación al mejor postor | `Subasta.cerrar()` |
+| RN-14 desierta sin pago | `Subasta.cerrar()` |
+| RN-15 orden por 48 horas | `OrdenPago.emitir()` en `src/domain/OrdenPago.ts` |
+| RN-16 un solo cierre | `Subasta.cerrar()` y `Subasta.verificarCierre()` |
+| RN-17 pago solo por la pasarela | `Subasta.registrarResultadoPago()` (único camino a `OrdenPago.confirmarPago()`) |
+| RN-18 verificar origen | `firmaValida()` en `src/infrastructure/auth/FirmaPasarela.ts`, usada por `WebhookController` antes de todo |
+| RN-19 idempotencia | `ProcesarEventoPago` + `EventoPagoRepository` (guarda la respuesta y la repite) |
+| RN-20 orden vencida → incumplimiento | `Subasta.verificarVencimientoPago()` |
+| RN-21 pesos sin decimales, no negativos | `Dinero` en `src/domain/valueObjects/Dinero.ts` |
+| RN-22 correo único | `RegistrarUsuario` + índice único en `MongoUsuarioRepository` |
+| RN-23 historial público sin contacto | `aVistaDetalle()` en `src/application/services/Vistas.ts` (solo id y nombre del postor) |
 
-- main: rama principal y estable.
-- feat/persistencia-mongodb: implementación de persistencia con MongoDB Atlas y evolución de funcionalidades asociadas.
+**Cierre perezoso (sección 4.4):** `SincronizadorSubastas` se ejecuta al listar, consultar el detalle,
+pujar, cancelar y consultar órdenes; no hay procesos en segundo plano.
 
-Esta estrategia permitió desarrollar nuevas características sin afectar la estabilidad de la aplicación.
+## 6. Comunicación
 
-# Convención de Commits
+| Canal | Quién inicia | Implementación |
+|---|---|---|
+| API REST | La aplicación web | `src/infrastructure/http/rutas.ts` |
+| WebSockets | El servidor | `ServidorTiempoReal.ts` + `SocketIONotificacionAdapter` (puerto `NotificacionPort`) |
+| Webhook | La pasarela | `POST /api/v1/webhooks/pagos` con cabecera `x-pasarela-firma` |
 
-Se utilizaron mensajes descriptivos siguiendo el formato:
+**Recorrido de una puja:** el navegador envía `POST /subastas/:id/pujas` → `autenticacion` verifica el token →
+`SubastaController.pujar` valida el formato → `RegistrarPuja` recupera la subasta, aplica el cierre perezoso y
+llama a `Subasta.registrarPuja()` → si la acepta, se guarda y `AvisadorNegocio` anuncia el hecho por
+`NotificacionPort` → `SocketIONotificacionAdapter` emite `nueva-puja` a la sala `subasta:<id>` y `notificacion`
+a la sala personal del postor superado → los demás navegadores actualizan la oferta sin recargar.
+Si la rechaza, la API responde **422** con el código de la regla y el intento queda auditado.
 
-feat: incorporación de nuevas funcionalidades
-fix: corrección de errores
-refactor: mejoras internas sin modificar comportamiento
-docs: actualización de documentación
+Documentación completa de recursos, eventos y contrato del webhook: **`docs/openapi.yaml`**
+(se puede abrir en https://editor.swagger.io).
 
-Ejemplos:
+## 7. Pasarela de pagos simulada
 
-feat(realtime): implementar persistencia y eventos en tiempo real
-fix(domain): corregir reconstruccion de subastas desde mongodb
-docs: actualizar README para entrega 2
+`npm run pasarela` levanta un proceso independiente que representa al tercero. Desde **Mis pagos** o el
+detalle de una subasta ganada, el botón **Pagar** abre su página de cobro, donde se puede:
 
-# Resumen de Reglas Implementadas
-- RN-01
-- RN-02
-- RN-03
-- RN-04
-- RN-05
-- RN-07
-- RN-08
-- RN-09
-- RN-10
-- RN-13
-- RN-14
-- RN-16
-- RN-21
+- **Aprobar** o **Rechazar** → envía el webhook firmado con `WEBHOOK_SECRET`.
+- **Reenviar el mismo evento** → demuestra RN-19: misma respuesta, ningún cambio adicional.
+- **Enviar con firma inválida** → demuestra RN-18: la API responde 401 y no cambia nada.
 
+## 8. Aplicación web (`frontend-subastas/`)
 
+Angular 22 con componentes *standalone* y *signals*, `HttpClient` con interceptor y `socket.io-client`.
+Se eligió Angular por su enrutador con guardas, inyección de dependencias e interceptores, que resuelven
+la sesión y el manejo de errores en un solo lugar.
 
+| Carpeta | Responsabilidad |
+|---|---|
+| `src/app/core/servicios/` | Sesión (token guardado y expiración), API REST, WebSocket, notificaciones y avisos |
+| `src/app/core/interceptores/` | Agrega el token a cada petición y cierra la sesión si expira |
+| `src/app/core/guardas/` | Protege las rutas privadas |
+| `src/app/core/errores.ts` | Traduce los errores de la API a mensajes comprensibles (RF-25) |
+| `src/app/compartido/` | Cuenta regresiva, insignia de estado, imagen por categoría, alertas y formato de pesos |
+| `src/app/diseno/` | Encabezado con búsqueda, indicador en vivo, notificaciones y menú de usuario |
+| `src/app/paginas/` | Acceso, listado (filtros, paginación, actividad), detalle en tiempo real, publicar, perfil y pagos |
 
+Comandos: `npm start` (desarrollo), `npm run build` (producción). Las direcciones de la API, del WebSocket y
+de la pasarela están en `src/environments/environment.ts`.
+
+## 9. Estrategia de ramas y convención de commits
+
+- `main`: rama estable; es la que se califica en cada entrega y siempre debe compilar.
+- `feat/<tema>`: una rama por funcionalidad (`feat/persistencia-mongodb`, `feat/entrega-3-integracion-web`).
+- Integración a `main` mediante *Pull Request* en GitHub.
+
+Mensajes con el formato **Conventional Commits** en español: `tipo(alcance): descripción en infinitivo`.
+
+| Tipo | Uso |
+|---|---|
+| `feat` | Nueva funcionalidad |
+| `fix` | Corrección de un error |
+| `refactor` | Cambio interno sin alterar el comportamiento |
+| `test` | Pruebas |
+| `docs` | Documentación |
+| `chore` | Configuración y mantenimiento |
+
+Ejemplos: `feat(dominio): agregar articulo y categoria al agregado subasta`,
+`fix(api): responder 422 cuando una puja incumple una regla`, `docs: documentar el webhook en openapi`.
+
+## 10. Tecnologías
+
+Node.js · TypeScript (modo estricto) · Express 5 · Socket.IO · MongoDB Atlas con Mongoose · JWT · bcrypt ·
+Jest y Supertest · Angular 22.
