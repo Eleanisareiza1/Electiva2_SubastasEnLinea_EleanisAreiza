@@ -1,0 +1,67 @@
+<section class="acceso">
+  <div class="lado-marca">
+    <div class="contenido-marca">
+      <span class="etiqueta">Subastas públicas en tiempo real</span>
+      <h1>Tú pones el precio.<br /><span>Gana la mejor oferta.</span></h1>
+      <p>Publica artículos, puja contra otros usuarios y mira cada oferta actualizarse al instante, sin recargar la página.</p>
+      <ul>
+        <li><b>⚡</b> Pujas en vivo por WebSocket</li>
+        <li><b>🔒</b> Pagos confirmados solo por la pasarela</li>
+        <li><b>⏱️</b> Cierre y adjudicación automáticos</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="lado-formulario">
+    <form class="tarjeta formulario" (ngSubmit)="enviar()">
+      <h2>{{ esRegistro() ? 'Crea tu cuenta' : 'Bienvenido de nuevo' }}</h2>
+      <p class="subtitulo">
+        {{ esRegistro() ? 'Regístrate gratis para publicar y pujar.' : 'Ingresa para ver las subastas en vivo.' }}
+      </p>
+
+      @if (esRegistro()) {
+        <div class="campo">
+          <label for="nombre">Nombre completo</label>
+          <input id="nombre" name="nombre" [(ngModel)]="nombre" required minlength="2" maxlength="80" autocomplete="name" />
+        </div>
+      }
+
+      <div class="campo">
+        <label for="correo">Correo electrónico</label>
+        <input id="correo" name="correo" type="email" [(ngModel)]="correo" required autocomplete="email" />
+      </div>
+
+      <div class="campo">
+        <label for="password">Contraseña</label>
+        <input id="password" name="password" type="password" [(ngModel)]="password" required
+               [attr.autocomplete]="esRegistro() ? 'new-password' : 'current-password'" />
+        @if (esRegistro()) { <small>Mínimo 8 caracteres.</small> }
+      </div>
+
+      <app-alerta-error [error]="error()" />
+
+      <button type="submit" class="boton boton-naranja boton-bloque" [disabled]="enviando()">
+        {{ enviando() ? 'Un momento…' : esRegistro() ? 'Crear cuenta' : 'Ingresar' }}
+      </button>
+
+      <p class="cambiar">
+        @if (esRegistro()) {
+          ¿Ya tienes cuenta? <a routerLink="/login">Ingresa aquí</a>
+        } @else {
+          ¿Eres nuevo? <a routerLink="/registro">Crea una cuenta</a>
+        }
+      </p>
+
+      @if (mostrarDemo && !esRegistro()) {
+        <div class="demo">
+          <span class="etiqueta-seccion">Usuarios de demostración</span>
+          <div class="chips">
+            <button type="button" (click)="usarDemo('valentina@demo.com')">Valentina</button>
+            <button type="button" (click)="usarDemo('sofia@demo.com')">Sofía</button>
+            <button type="button" (click)="usarDemo('mateo@demo.com')">Mateo</button>
+          </div>
+        </div>
+      }
+    </form>
+  </div>
+</section>

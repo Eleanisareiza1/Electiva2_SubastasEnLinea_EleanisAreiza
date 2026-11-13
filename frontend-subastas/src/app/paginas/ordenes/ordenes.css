@@ -1,0 +1,17 @@
+.pagina { padding-top: 26px; max-width: 960px; }
+h1 { color: var(--azul-900); margin-top: 4px; }
+.intro { color: var(--texto-suave); margin-top: -4px; }
+app-alerta-error { display: block; margin-bottom: 14px; }
+.lista { display: grid; gap: 14px; margin-top: 18px; }
+.orden { display: grid; grid-template-columns: 56px 1fr auto; gap: 18px; align-items: center; border-left: 6px solid var(--amarillo); }
+.orden[data-estado='PAGADA'] { border-left-color: var(--verde); }
+.orden[data-estado='VENCIDA'] { border-left-color: var(--rojo); }
+.icono { width: 52px; height: 52px; border-radius: 50%; background: var(--gris-100); display: grid; place-items: center; font-size: 22px; }
+.info a { text-decoration: none; color: var(--azul-900); }
+.info h3 { margin: 0 0 4px; }
+.info small { color: var(--texto-suave); }
+.plazo { margin-top: 8px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 14px; }
+.monto { display: grid; justify-items: end; gap: 6px; }
+.monto strong { font-family: var(--fuente-titulos); font-size: 24px; color: var(--azul-900); }
+.estado { font-size: 11px; font-weight: 800; letter-spacing: .06em; color: var(--texto-suave); }
+@media (max-width: 700px) { .orden { grid-template-columns: 1fr; } .monto { justify-items: start; } }

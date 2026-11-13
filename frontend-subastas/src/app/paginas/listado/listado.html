@@ -1,0 +1,172 @@
+@if (!hayFiltros()) {
+  <section class="heroe">
+    <div class="contenedor heroe-fila">
+      <div class="heroe-texto">
+        <span class="sello"><b>Subastas</b>EnLínea</span>
+        <h1>Nuestro mejor inventario<br />de <span>artículos en subasta</span></h1>
+        <div class="ventajas">
+          <span><i>✔</i> Reglas claras</span>
+          <span><i>⚡</i> Pujas en vivo</span>
+          <span><i>🔒</i> Pago verificado</span>
+        </div>
+        <div class="heroe-acciones">
+          <button type="button" class="boton boton-azul" (click)="filtrar({ estado: 'ABIERTA' })">Ver subastas en vivo ›</button>
+          <a routerLink="/subastas/publicar" class="boton boton-amarillo">Publicar un artículo</a>
+        </div>
+      </div>
+      <div class="heroe-tarjetas">
+        @for (s of destacadas().slice(0, 3); track s.id) {
+          <a class="mini" [routerLink]="['/subastas', s.id]" [class.destello]="resaltadas().has(s.id)">
+            <app-imagen-articulo [url]="s.imagenUrl" [titulo]="s.titulo" [categoriaId]="s.categoriaId" [categoria]="s.categoriaNombre" />
+            <strong>{{ s.titulo }}</strong>
+            <span class="mini-precio">{{ (s.ofertaVigente ?? s.precioBase) | pesos }}</span>
+            <app-cuenta-regresiva [cierre]="s.fechaCierre" (terminada)="alTerminar()" />
+          </a>
+        }
+      </div>
+    </div>
+  </section>
+}
+
+<div class="contenedor marketplace">
+  <!-- Filtros (izquierda) -->
+  <aside class="filtros">
+    <div class="bloque">
+      <span class="etiqueta-seccion">Estado</span>
+      <label class="opcion">
+        <input type="radio" name="estado" [checked]="!filtroEstado()" (change)="filtrar({ estado: null })" />
+        <span>Todas</span><em>{{ totalTodas() }}</em>
+      </label>
+      @for (e of estados; track e.valor) {
+        <label class="opcion" [class.en-vivo]="e.valor === 'ABIERTA'">
+          <input type="radio" name="estado" [checked]="filtroEstado() === e.valor" (change)="filtrar({ estado: e.valor })" />
+          <span>{{ e.etiqueta }}</span><em>{{ conteo(e.valor) }}</em>
+        </label>
+      }
+    </div>
+
+    <div class="bloque">
+      <span class="etiqueta-seccion">Categorías</span>
+      <label class="opcion">
+        <input type="radio" name="categoria" [checked]="!filtroCategoria()" (change)="filtrar({ categoria: null })" />
+        <span>Todas las categorías</span>
+      </label>
+      @for (c of categorias(); track c.id) {
+        <label class="opcion">
+          <input type="radio" name="categoria" [checked]="filtroCategoria() === c.id" (change)="filtrar({ categoria: c.id })" />
+          <span>{{ c.nombre }}</span>
+        </label>
+      }
+    </div>
+
+    @if (hayFiltros()) {
+      <button type="button" class="boton boton-contorno boton-bloque" (click)="limpiar()">Limpiar filtros</button>
+    }
+  </aside>
+
+  <!-- Resultados (centro) -->
+  <section class="resultados">
+    <div class="cabecera-resultados">
+      <span class="etiqueta-seccion">{{ listado()?.total ?? 0 }} resultados</span>
+      @if (texto()) {
+        <span class="chip-busqueda">“{{ texto() }}” <button type="button" (click)="filtrar({ texto: null })">×</button></span>
+      }
+    </div>
+
+    <app-alerta-error [error]="error()" />
+
+    @if (cargando() && !listado()) {
+      <div class="cargando"><div class="girador"></div></div>
+    } @else {
+      @for (s of listado()?.items ?? []; track s.id) {
+        <article class="fila-subasta" [class.destello]="resaltadas().has(s.id)">
+          <a [routerLink]="['/subastas', s.id]" class="foto">
+            <app-imagen-articulo [url]="s.imagenUrl" [titulo]="s.titulo" [categoriaId]="s.categoriaId" [categoria]="s.categoriaNombre" />
+          </a>
+
+          <div class="info">
+            <div class="titulo-fila">
+              <a [routerLink]="['/subastas', s.id]"><h3>{{ s.titulo }}</h3></a>
+              @if (s.estado === 'ABIERTA') {
+                <app-cuenta-regresiva [cierre]="s.fechaCierre" (terminada)="alTerminar()" />
+              } @else {
+                <app-estado-subasta [estado]="s.estado" />
+              }
+            </div>
+            <p class="meta">{{ s.categoriaNombre }} · {{ conservacion(s.estadoConservacion) }}</p>
+            <p class="meta">Vendedor: <b>{{ s.vendedorNombre }}</b> · {{ s.totalPujas }} {{ s.totalPujas === 1 ? 'puja' : 'pujas' }}</p>
+            @if (s.ganadorNombre) {
+              <p class="ganador">🏆 Ganador: {{ s.ganadorNombre }}</p>
+            }
+          </div>
+
+          <div class="precio">
+            <small>{{ s.ofertaVigente ? 'Oferta actual' : 'Precio base' }}</small>
+            <strong>{{ (s.ofertaVigente ?? s.precioBase) | pesos }}</strong>
+            @if (s.estado === 'ABIERTA' && s.vendedorId !== sesion.usuario()?.id) {
+              <a [routerLink]="['/subastas', s.id]" class="boton boton-naranja pujar">PUJAR {{ s.montoMinimoSiguiente | pesos }}</a>
+            } @else {
+              <a [routerLink]="['/subastas', s.id]" class="boton boton-contorno pujar">Ver detalle</a>
+            }
+          </div>
+        </article>
+      } @empty {
+        <div class="tarjeta vacio-grande">
+          <h3>No encontramos subastas</h3>
+          <p>Prueba con otros filtros o publica el primer artículo.</p>
+          <a routerLink="/subastas/publicar" class="boton boton-amarillo">Publicar artículo</a>
+        </div>
+      }
+
+      @if ((listado()?.totalPaginas ?? 1) > 1) {
+        <nav class="paginacion" aria-label="Paginación">
+          <button type="button" [disabled]="pagina() <= 1" (click)="filtrar({ pagina: pagina() - 1 })">‹</button>
+          @for (p of paginas(); track p) {
+            <button type="button" [class.actual]="p === pagina()" (click)="filtrar({ pagina: p })">{{ p }}</button>
+          }
+          <button type="button" [disabled]="pagina() >= (listado()?.totalPaginas ?? 1)" (click)="filtrar({ pagina: pagina() + 1 })">›</button>
+        </nav>
+      }
+    }
+  </section>
+
+  <!-- Actividad del usuario (derecha) -->
+  <aside class="actividad">
+    <div class="tarjeta">
+      <span class="etiqueta-seccion">Mi actividad</span>
+      <div class="cifras">
+        <div><strong>{{ perfil()?.estadisticas?.ganadas ?? 0 }}</strong><small>Ganadas</small></div>
+        <div><strong>{{ perfil()?.estadisticas?.participando ?? 0 }}</strong><small>Pujando</small></div>
+        <div><strong>{{ perfil()?.estadisticas?.publicadas ?? 0 }}</strong><small>Publicadas</small></div>
+      </div>
+    </div>
+
+    <div class="tarjeta">
+      <div class="titulo-bloque">
+        <span class="etiqueta-seccion">Pujando ahora</span>
+        <b>{{ liderando().length }}</b>
+      </div>
+      @for (s of liderando(); track s.id) {
+        <a class="mini-fila" [routerLink]="['/subastas', s.id]">
+          <app-imagen-articulo [url]="s.imagenUrl" [titulo]="s.titulo" [categoriaId]="s.categoriaId" />
+          <span>{{ s.titulo }}</span>
+          <app-cuenta-regresiva [cierre]="s.fechaCierre" />
+        </a>
+      } @empty {
+        <p class="suave">Aún no participas en subastas abiertas.</p>
+      }
+    </div>
+
+    <div class="tarjeta">
+      <div class="titulo-bloque">
+        <span class="etiqueta-seccion">Avisos recientes</span>
+        <b>{{ notificaciones.sinLeer() }}</b>
+      </div>
+      @for (n of notificaciones.lista().slice(0, 4); track n.id) {
+        <p class="aviso-mini" [class.no-leido]="!n.leida">{{ n.mensaje }}</p>
+      } @empty {
+        <p class="suave">Sin avisos por ahora.</p>
+      }
+    </div>
+  </aside>
+</div>

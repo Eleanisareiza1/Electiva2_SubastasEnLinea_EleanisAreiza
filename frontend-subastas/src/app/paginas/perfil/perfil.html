@@ -1,0 +1,50 @@
+<div class="contenedor pagina">
+  <app-alerta-error [error]="error()" />
+
+  @if (perfil(); as p) {
+    <section class="tarjeta portada">
+      <div class="avatar">{{ iniciales() }}</div>
+      <div>
+        <h1>{{ p.usuario.nombre }}</h1>
+        <p>{{ p.usuario.correo }} · Miembro desde {{ p.usuario.fechaRegistro | date: 'MMMM y' }}</p>
+      </div>
+      <a routerLink="/subastas/publicar" class="boton boton-naranja">+ Publicar artículo</a>
+    </section>
+
+    <section class="cifras">
+      <div class="tarjeta"><strong>{{ p.estadisticas.ganadas }}</strong><span>Subastas ganadas</span></div>
+      <div class="tarjeta"><strong>{{ p.estadisticas.liderando }}</strong><span>Liderando ahora</span></div>
+      <div class="tarjeta"><strong>{{ p.estadisticas.participando }}</strong><span>Pujando en vivo</span></div>
+      <div class="tarjeta"><strong>{{ p.estadisticas.publicadas }}</strong><span>Publicadas</span></div>
+    </section>
+
+    <div class="pestanas">
+      <button type="button" [class.activa]="pestana() === 'participadas'" (click)="pestana.set('participadas')">
+        Donde participé ({{ p.participadas.length }})
+      </button>
+      <button type="button" [class.activa]="pestana() === 'publicadas'" (click)="pestana.set('publicadas')">
+        Mis publicaciones ({{ p.publicadas.length }})
+      </button>
+    </div>
+
+    <section class="rejilla">
+      @for (s of lista(); track s.id) {
+        <a class="tarjeta subasta" [routerLink]="['/subastas', s.id]">
+          <app-imagen-articulo [url]="s.imagenUrl" [titulo]="s.titulo" [categoriaId]="s.categoriaId" [categoria]="s.categoriaNombre" />
+          <div class="fila"><app-estado-subasta [estado]="s.estado" />
+            @if (s.estado === 'ABIERTA') { <app-cuenta-regresiva [cierre]="s.fechaCierre" /> }</div>
+          <strong>{{ s.titulo }}</strong>
+          <span class="precio">{{ (s.ofertaVigente ?? s.precioBase) | pesos }}</span>
+          <small>{{ s.totalPujas }} pujas @if (s.ganadorNombre) { · Ganador: {{ s.ganadorNombre }} }</small>
+        </a>
+      } @empty {
+        <div class="tarjeta vacio-grande">
+          <p>{{ pestana() === 'publicadas' ? 'Aún no has publicado subastas.' : 'Aún no has pujado en ninguna subasta.' }}</p>
+          <a routerLink="/subastas" class="boton boton-amarillo">Explorar subastas</a>
+        </div>
+      }
+    </section>
+  } @else if (!error()) {
+    <div class="cargando"><div class="girador"></div></div>
+  }
+</div>

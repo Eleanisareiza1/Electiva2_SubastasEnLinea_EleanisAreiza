@@ -1,0 +1,15 @@
+.pagina { padding-top: 26px; }
+.cabecera { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 18px; }
+.cabecera h1 { color: var(--azul-900); margin-top: 4px; }
+.cabecera p { color: var(--texto-suave); margin: 0; max-width: 620px; }
+app-alerta-error { display: block; margin-bottom: 16px; }
+.rejilla { display: grid; grid-template-columns: 1.2fr 1fr; gap: 22px; align-items: start; }
+h3 { display: flex; align-items: center; gap: 10px; color: var(--azul-900); margin-bottom: 18px; }
+.numero { width: 28px; height: 28px; border-radius: 50%; background: var(--amarillo); color: var(--azul-900); display: grid; place-items: center; font-size: 14px; }
+.dos { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.vista-previa { background: var(--gris-50); border-radius: 12px; padding: 14px; margin-bottom: 16px; }
+.previa { display: grid; grid-template-columns: 110px 1fr; gap: 12px; align-items: center; margin-top: 10px; }
+.previa div { display: grid; gap: 2px; }
+.previa small { color: var(--texto-suave); }
+.precio { font-family: var(--fuente-titulos); font-weight: 800; color: var(--azul-700); font-size: 18px; }
+@media (max-width: 900px) { .rejilla, .dos { grid-template-columns: 1fr; } }

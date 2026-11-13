@@ -1,0 +1,34 @@
+import { Component, computed, input } from '@angular/core';
+import { EstadoSubasta } from '../core/modelos';
+
+const ETIQUETAS: Record<EstadoSubasta, string> = {
+  ABIERTA: 'En vivo',
+  CERRADA: 'Adjudicada',
+  PAGADA: 'Pagada',
+  DESIERTA: 'Desierta',
+  CANCELADA: 'Cancelada',
+  INCUMPLIDA: 'Incumplida'
+};
+
+@Component({
+  selector: 'app-estado-subasta',
+  template: `<span class="insignia" [attr.data-estado]="estado()">
+    @if (estado() === 'ABIERTA') { <span class="pulso"></span> }
+    {{ etiqueta() }}
+  </span>`,
+  styles: `
+    .insignia { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 800;
+      letter-spacing: .06em; text-transform: uppercase; padding: 4px 9px; border-radius: 999px; }
+    [data-estado='ABIERTA'] { background: #e7f8ee; color: #0f7a3d; }
+    [data-estado='CERRADA'] { background: #e8efff; color: var(--azul-700); }
+    [data-estado='PAGADA'] { background: #dcfce7; color: #166534; }
+    [data-estado='DESIERTA'], [data-estado='CANCELADA'] { background: var(--gris-100); color: var(--texto-suave); }
+    [data-estado='INCUMPLIDA'] { background: #ffe9e9; color: var(--rojo); }
+    .pulso { width: 7px; height: 7px; border-radius: 50%; background: #16a34a; animation: pulso 1.4s infinite; }
+    @keyframes pulso { 0% { box-shadow: 0 0 0 0 rgba(22,163,74,.6); } 70% { box-shadow: 0 0 0 7px rgba(22,163,74,0); } 100% { box-shadow: 0 0 0 0 rgba(22,163,74,0); } }
+  `
+})
+export class EstadoSubastaInsignia {
+  readonly estado = input.required<EstadoSubasta>();
+  readonly etiqueta = computed(() => ETIQUETAS[this.estado()]);
+}

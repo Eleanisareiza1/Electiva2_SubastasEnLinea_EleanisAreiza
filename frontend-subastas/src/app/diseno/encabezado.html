@@ -1,0 +1,74 @@
+<header class="superior">
+  <div class="contenedor fila">
+    <a routerLink="/subastas" class="marca" aria-label="Inicio">
+      <span class="logo">
+        <svg viewBox="0 0 24 24"><path d="M14 4l6 6M11 7l6 6M12.5 5.5l-6 6 6 6 6-6M9.5 14.5L3 21" /></svg>
+      </span>
+      <span class="nombre">Subastas<b>EnLínea</b></span>
+    </a>
+
+    <form class="buscador" (ngSubmit)="buscar()">
+      <input type="search" name="busqueda" placeholder="Busca por artículo, marca o modelo…"
+             [ngModel]="busqueda()" (ngModelChange)="busqueda.set($event)" />
+      <button type="submit" class="boton boton-amarillo">Buscar</button>
+    </form>
+
+    <div class="acciones">
+      @if (sesion.autenticado()) {
+        <span class="vivo" [class.activo]="tiempoReal.conectado()"
+              [title]="tiempoReal.conectado() ? 'Conectado en tiempo real' : 'Sin conexión en tiempo real'">
+          <i></i>{{ tiempoReal.conectado() ? 'En vivo' : 'Sin conexión' }}
+        </span>
+
+        <div class="desplegable">
+          <button type="button" class="icono-boton" aria-label="Notificaciones" (click)="alternar('notificaciones')">
+            <svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0" /></svg>
+            @if (notificaciones.sinLeer() > 0) { <span class="contador">{{ notificaciones.sinLeer() }}</span> }
+          </button>
+          @if (panel() === 'notificaciones') {
+            <div class="panel panel-notificaciones">
+              <h4>Notificaciones</h4>
+              @for (n of notificaciones.lista(); track n.id) {
+                <button type="button" class="notificacion" [class.no-leida]="!n.leida" (click)="abrir(n)">
+                  <span>{{ n.mensaje }}</span>
+                  <small>{{ n.fecha | date: 'd MMM, h:mm a' }}</small>
+                </button>
+              } @empty {
+                <p class="vacio">No tienes notificaciones todavía.</p>
+              }
+            </div>
+          }
+        </div>
+
+        <div class="desplegable">
+          <button type="button" class="avatar" (click)="alternar('usuario')" aria-label="Menú de usuario">{{ iniciales() }}</button>
+          @if (panel() === 'usuario') {
+            <div class="panel panel-usuario">
+              <strong>{{ sesion.usuario()?.nombre }}</strong>
+              <small>{{ sesion.usuario()?.correo }}</small>
+              <a routerLink="/perfil" (click)="panel.set(null)">Mi perfil</a>
+              <a routerLink="/ordenes" (click)="panel.set(null)">Mis pagos</a>
+              <button type="button" (click)="salir()">Cerrar sesión</button>
+            </div>
+          }
+        </div>
+      } @else {
+        <a routerLink="/registro" class="enlace-claro">Registrarse</a>
+        <a routerLink="/login" class="boton boton-amarillo">Ingresar</a>
+      }
+    </div>
+  </div>
+</header>
+
+@if (sesion.autenticado()) {
+  <nav class="navegacion">
+    <div class="contenedor fila">
+      <a routerLink="/subastas" routerLinkActive="activo" [routerLinkActiveOptions]="{ exact: true }">Explorar subastas</a>
+      <a routerLink="/subastas" [queryParams]="{ estado: 'ABIERTA' }">En vivo</a>
+      <a routerLink="/perfil" routerLinkActive="activo">Mi actividad</a>
+      <a routerLink="/ordenes" routerLinkActive="activo">Mis pagos</a>
+      <span class="espacio"></span>
+      <a routerLink="/subastas/publicar" class="boton boton-naranja">+ Publicar artículo</a>
+    </div>
+  </nav>
+}
