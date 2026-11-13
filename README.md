@@ -453,11 +453,11 @@ La especificación completa, con ejemplos de peticiones y respuestas, está en *
 |---|---|---|
 | POST | /auth/register | Registrar usuario (nombre, correo, password) |
 | POST | /auth/login | Iniciar sesión; devuelve el token |
-| GET 🔒 | /auth/profile | Perfil con subastas publicadas y en las que participó |
+| GET  | /auth/profile | Perfil con subastas publicadas y en las que participó |
 
 ## Crear Subasta
 
-**Endpoint** 🔒
+**Endpoint** 
 
 POST http://localhost:5000/api/v1/subastas
 
@@ -485,7 +485,7 @@ GET http://localhost:5000/api/v1/subastas?categoria=tecnologia&estado=ABIERTA&te
 
 ## Consultar Detalle
 
-**Endpoint** 🔒
+**Endpoint** 
 
 GET http://localhost:5000/api/v1/subastas/:id
 
@@ -493,7 +493,7 @@ Devuelve el estado, la oferta vigente, el historial de pujas y, solo al ganador 
 
 ## Registrar Puja
 
-**Endpoint** 🔒
+**Endpoint** 
 
 POST http://localhost:5000/api/v1/subastas/:id/pujas
 
@@ -508,7 +508,7 @@ Si la puja se rechaza, la API responde **422** con el código de la regla incump
 
 ## Cancelar Subasta
 
-**Endpoint** 🔒
+**Endpoint** 
 
 PATCH http://localhost:5000/api/v1/subastas/:id/cancelar
 
@@ -516,7 +516,7 @@ Permite al vendedor cancelar una subasta que aún no ha recibido pujas.
 
 ## Consultar Intentos Fallidos
 
-**Endpoint** 🔒
+**Endpoint** 
 
 GET http://localhost:5000/api/v1/subastas/:id/intentos-fallidos
 
@@ -527,10 +527,10 @@ El vendedor ve todos los intentos rechazados de su subasta; los demás usuarios 
 | Método | Ruta | Descripción |
 |---|---|---|
 | GET | /categorias | Listar categorías |
-| GET 🔒 | /subastas/:id/pujas | Historial público de pujas |
-| GET 🔒 | /ordenes | Órdenes de pago del usuario ganador |
-| GET 🔒 | /notificaciones | Notificaciones del usuario |
-| PATCH 🔒 | /notificaciones/:id/leida | Marcar notificación como leída |
+| GET | /subastas/:id/pujas | Historial público de pujas |
+| GET | /ordenes | Órdenes de pago del usuario ganador |
+| GET  | /notificaciones | Notificaciones del usuario |
+| PATCH  | /notificaciones/:id/leida | Marcar notificación como leída |
 | POST | /webhooks/pagos | Webhook de la pasarela (se autentica con firma, no con token) |
 | GET | /salud | Verificar que la API está en funcionamiento |
 
