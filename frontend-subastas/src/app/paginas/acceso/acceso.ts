@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { map } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { AlertaError } from '../../compartido/alerta-error';
+import { AlertaError } from '../../compartido/alerta-error/alerta-error';
 import { ErrorMostrable, interpretarError } from '../../core/errores';
 import { SesionService } from '../../core/servicios/sesion.service';
 
