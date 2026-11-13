@@ -1,478 +1,436 @@
-// Entidad central de la subasta: conserva sus datos y aplica las reglas de pujas,
-// cancelación, cierre, adjudicación y registro de intentos fallidos.
+// Raíz del agregado. Toda regla de publicación, pujas, cierre, adjudicación y
+// pago se hace cumplir aquí, sin importar por qué camino llegue la solicitud.
+// Dentro de la frontera de consistencia viven: Articulo, Puja,
+// IntentoPujaFallida y OrdenPago.
 
-// Importa la clase Puja para registrar las ofertas realizadas.
-import { Puja } from "./Puja";
-import { Dinero } from "./valueObjects/Dinero";
-import { EstadoSubasta } from "./valueObjects/EstadoSubasta";
+import { Articulo } from "./Articulo";
+import { ErrorDominio } from "./errors/ErrorDominio";
 import { IntentoPujaFallida } from "./IntentoPujaFallida";
 import { OrdenPago } from "./OrdenPago";
+import { Puja } from "./Puja";
+import { Dinero } from "./valueObjects/Dinero";
+import { EstadoPago } from "./valueObjects/EstadoPago";
+import { EstadoSubasta } from "./valueObjects/EstadoSubasta";
+import { ResultadoPago } from "./valueObjects/ResultadoPago";
 
+const UNA_HORA_MS = 60 * 60 * 1000;
+export const DURACION_MINIMA_MS = UNA_HORA_MS;           // RN-03
+export const DURACION_MAXIMA_MS = 30 * 24 * UNA_HORA_MS; // RN-03
 
+// Resultado de una puja aceptada: permite a la aplicación saber a quién avisar.
+export interface PujaAceptada {
+    puja: Puja;
+    postorSuperadoId: string | null;
+}
 
-// Declara y exporta la clase Subasta para usarla desde otros archivos.
+export interface DatosSubasta {
+    id: string;
+    vendedorId: string;
+    articulo: Articulo;
+    precioBase: Dinero;
+    incrementoMinimo: Dinero;
+    fechaPublicacion: Date;
+    fechaCierre: Date;
+    estado: EstadoSubasta;
+    pujas: Puja[];
+    intentosFallidos: IntentoPujaFallida[];
+    ganadorId: string | null;
+    ordenPago: OrdenPago | null;
+}
+
 export class Subasta {
 
-    // Título o nombre de la subasta.
-    public readonly titulo: string;
-
+    // RN-05: los datos de la publicación son de solo lectura.
+    public readonly id: string;
     public readonly vendedorId: string;
-    // Precio mínimo con el que inicia la subasta.
+    public readonly articulo: Articulo;
     public readonly precioBase: Dinero;
-
-    // Valor mínimo que debe aumentar cada nueva puja.
     public readonly incrementoMinimo: Dinero;
-
-    // Fecha y hora en la que se crea la subasta.
     public readonly fechaPublicacion: Date;
-
-    // Fecha y hora en la que finaliza la subasta.
     public readonly fechaCierre: Date;
 
     private estado: EstadoSubasta;
-    // Lista privada de pujas realizadas en la subasta.
-    // "private" impide modificarla directamente desde fuera de la clase.
-    private pujas: Puja[] = [];
-    private intentosFallidos: IntentoPujaFallida[] = [];
-    private ganadorId: string | null = null;
-    private ordenPago: OrdenPago | null = null;
+    private readonly pujas: Puja[];
+    private readonly intentosFallidos: IntentoPujaFallida[];
+    private ganadorId: string | null;
+    private ordenPago: OrdenPago | null;
 
-    // Constructor que recibe los datos necesarios para crear una subasta.
-    constructor(
-        // Recibe el título de la subasta.
-        titulo: string,
-        vendedorId: string,
-
-        // Recibe el precio base de la subasta.
-        precioBase: Dinero,
-
-        // Recibe el incremento mínimo de cada puja.
-        incrementoMinimo: Dinero,
-
-        // Recibe la fecha y hora de cierre.
-        fechaCierre: Date,
-
-    ) {
-
-        // Obtiene la fecha y hora actual como fecha de publicación.
-        const fechaPublicacion = new Date();
-
-        // RN-01: valida que el precio base sea mayor que cero.
-        if (precioBase.obtenerValor() <= 0) {
-
-            // Detiene la creación y muestra un mensaje de error.
-            throw new Error(
-                "RN-01: El precio base debe ser mayor que cero"
-            );
-        }
-
-        // RN-01: valida que el incremento mínimo sea mayor que cero.
-        if (incrementoMinimo.obtenerValor() <= 0) {
-
-            // Detiene la creación si el incremento no es válido.
-            throw new Error(
-                "RN-01: El incremento mínimo debe ser mayor que cero"
-            );
-        }
-
-
-        // RN-02: valida que el cierre ocurra después de la publicación.
-        if (fechaCierre <= fechaPublicacion) {
-
-            throw new Error(
-                "RN-02: La fecha de cierre debe ser posterior a la publicación"
-            );
-
-        }
-
-        // Calcula la duración de la subasta en horas.
-        const diferenciaHoras =
-            (fechaCierre.getTime() - fechaPublicacion.getTime())
-            / (1000 * 60 * 60);
-
-        // RN-03: valida que dure al menos una hora.
-        if (diferenciaHoras < 1) {
-
-            // Detiene la creación si la duración es demasiado corta.
-            throw new Error(
-                "RN-03: La duración mínima de una subasta es una hora"
-            );
-        }
-
-        // RN-03: valida que no dure más de treinta días.
-        // Setecientas veinte horas equivalen a treinta días.
-        if (diferenciaHoras > 720) {
-
-            // Detiene la creación si la duración es demasiado larga.
-            throw new Error(
-                "RN-03: La duración máxima de una subasta es de treinta días"
-            );
-        }
-
-        // Guarda el título validado en la propiedad de la clase.
-        this.titulo = titulo;
-        this.vendedorId = vendedorId;
-        // Guarda el precio base validado.
-        this.precioBase = precioBase;
-
-        // Guarda el incremento mínimo validado.
-        this.incrementoMinimo = incrementoMinimo;
-
-        // Guarda la fecha actual como fecha de publicación.
-        this.fechaPublicacion = fechaPublicacion;
-
-        // Guarda la fecha de cierre validada.
-        this.fechaCierre = fechaCierre;
-
-        this.estado = EstadoSubasta.ABIERTA;
-        
+    private constructor(datos: DatosSubasta) {
+        this.id = datos.id;
+        this.vendedorId = datos.vendedorId;
+        this.articulo = datos.articulo;
+        this.precioBase = datos.precioBase;
+        this.incrementoMinimo = datos.incrementoMinimo;
+        this.fechaPublicacion = datos.fechaPublicacion;
+        this.fechaCierre = datos.fechaCierre;
+        this.estado = datos.estado;
+        this.pujas = [...datos.pujas];
+        this.intentosFallidos = [...datos.intentosFallidos];
+        this.ganadorId = datos.ganadorId;
+        this.ordenPago = datos.ordenPago;
     }
-  
-    // Restaura una subasta existente sin volver a ejecutar las validaciones de creación.
-    static reconstruir(
-    titulo: string,
-    vendedorId: string,
-    precioBase: Dinero,
-    incrementoMinimo: Dinero,
-    fechaPublicacion: Date,
-    fechaCierre: Date,
-    estado: EstadoSubasta,
-    pujas: Puja[] = [],
-    ganadorId: string | null = null,
-    ordenPago: OrdenPago | null = null
+
+    // ───────────────────────────── Publicación ─────────────────────────────
+
+    static publicar(
+        datos: {
+            id: string;
+            vendedorId: string;
+            articulo: Articulo;
+            precioBase: Dinero;
+            incrementoMinimo: Dinero;
+            fechaCierre: Date;
+        },
+        ahora: Date = new Date()
     ): Subasta {
 
-        const subasta =
-            Object.create(
-                Subasta.prototype
-            ) as Subasta;
+        // RN-01: precio base e incremento mayores que cero, con fecha de cierre.
+        if (datos.precioBase.esCero()) {
+            throw new ErrorDominio(
+                "RN-01",
+                "El precio base debe ser mayor que cero"
+            );
+        }
 
-        Object.assign(
-            subasta,
-            {
-                titulo,
-                vendedorId,
-                precioBase,
-                incrementoMinimo,
-                fechaPublicacion,
-                fechaCierre,
-                estado,
-                pujas,
-                intentosFallidos: [],
-                ganadorId,
-                ordenPago
-            }
-        );
+        if (datos.incrementoMinimo.esCero()) {
+            throw new ErrorDominio(
+                "RN-01",
+                "El incremento mínimo debe ser mayor que cero"
+            );
+        }
 
-        return subasta;
+        if (!(datos.fechaCierre instanceof Date) || isNaN(datos.fechaCierre.getTime())) {
+            throw new ErrorDominio(
+                "RN-01",
+                "La subasta debe tener una fecha y hora de cierre válida"
+            );
+        }
+
+        // RN-02: no puede nacer vencida.
+        if (datos.fechaCierre.getTime() <= ahora.getTime()) {
+            throw new ErrorDominio(
+                "RN-02",
+                "La fecha de cierre debe ser posterior al momento de la publicación"
+            );
+        }
+
+        // RN-03: entre una hora y treinta días calendario.
+        const duracion = datos.fechaCierre.getTime() - ahora.getTime();
+
+        if (duracion < DURACION_MINIMA_MS) {
+            throw new ErrorDominio(
+                "RN-03",
+                "La subasta debe durar al menos una hora"
+            );
+        }
+
+        if (duracion > DURACION_MAXIMA_MS) {
+            throw new ErrorDominio(
+                "RN-03",
+                "La subasta no puede durar más de treinta días calendario"
+            );
+        }
+
+        return new Subasta({
+            id: datos.id,
+            vendedorId: datos.vendedorId,
+            articulo: datos.articulo,
+            precioBase: datos.precioBase,
+            incrementoMinimo: datos.incrementoMinimo,
+            fechaPublicacion: ahora,
+            fechaCierre: datos.fechaCierre,
+            estado: EstadoSubasta.ABIERTA,
+            pujas: [],
+            intentosFallidos: [],
+            ganadorId: null,
+            ordenPago: null
+        });
     }
 
+    // Restaura una subasta guardada sin repetir las validaciones de publicación.
+    static reconstruir(datos: DatosSubasta): Subasta {
+        return new Subasta(datos);
+    }
 
+    // ──────────────────────────────── Pujas ────────────────────────────────
 
-    // Valida las reglas de participación y agrega la puja aceptada al historial.
     registrarPuja(
-    // Identificador del usuario que realiza la puja.
-        usuarioId: string,
+        postorId: string,
+        valorOfrecido: number,
+        ahora: Date = new Date()
+    ): PujaAceptada {
 
-        // Valor ofrecido por el usuario.
-        valor: number
-    ): void {
-        if (
-            this.estado === EstadoSubasta.CANCELADA ||
-            this.estado === EstadoSubasta.CERRADA ||
-            this.estado === EstadoSubasta.DESIERTA
-        ) {
-
-            this.registrarIntentoFallido(
-                usuarioId,
-                "RN-06: Solo se aceptan pujas sobre subastas abiertas"
+        // RN-06: solo subastas abiertas y dentro de su plazo.
+        if (this.estado !== EstadoSubasta.ABIERTA || this.plazoTerminado(ahora)) {
+            this.rechazar(
+                postorId, valorOfrecido, ahora,
+                "RN-06", "Solo se aceptan pujas sobre subastas abiertas"
             );
-
-            throw new Error(
-                "RN-06: Solo se aceptan pujas sobre subastas abiertas"
-            );
-
         }
-        if (
-        usuarioId === this.vendedorId
-    ) {
 
-        this.registrarIntentoFallido(
-            usuarioId,
-            "RN-07: El vendedor no puede pujar en su propia subasta"
-        );
+        // RN-07: el vendedor no puja por su propio artículo.
+        if (postorId === this.vendedorId) {
+            this.rechazar(
+                postorId, valorOfrecido, ahora,
+                "RN-07", "No puede pujar por un artículo que usted mismo publicó"
+            );
+        }
 
-        throw new Error(
-            "RN-07: El vendedor no puede pujar en su propia subasta"
-        );
+        // RN-21: el monto debe ser un valor monetario válido.
+        let valor: Dinero;
+        try {
+            valor = new Dinero(valorOfrecido);
+        } catch (error) {
+            const mensaje = error instanceof Error ? error.message : "Monto inválido";
+            return this.rechazar(postorId, valorOfrecido, ahora, "RN-21", mensaje);
+        }
 
-    }
-        // La última oferta determina tanto el importe mínimo como el liderazgo actual.
-        const ultimaPuja =
-            this.pujas[this.pujas.length - 1];
+        const vigente = this.obtenerPujaVigente();
 
-        // RN-08: valida la primera puja de la subasta.
-        if (!ultimaPuja) {
+        // RN-10: el mejor postor no puede superarse a sí mismo.
+        if (vigente && vigente.postorId === postorId) {
+            this.rechazar(
+                postorId, valorOfrecido, ahora,
+                "RN-10", "Usted ya es el mejor postor; no puede superar su propia puja"
+            );
+        }
 
-            // La primera puja debe ser igual o superior al precio base.
-            if (valor < this.precioBase.obtenerValor()) {
-
-                this.registrarIntentoFallido(
-                    usuarioId,
-                    "RN-08: La primera puja debe ser mayor o igual al precio base"
+        if (!vigente) {
+            // RN-08: la primera puja debe ser mayor o igual al precio base.
+            if (valor.esMenorQue(this.precioBase)) {
+                this.rechazar(
+                    postorId, valorOfrecido, ahora,
+                    "RN-08",
+                    `La primera puja debe ser de al menos ${this.precioBase.formatear()} (precio base)`
                 );
+            }
+        } else {
+            // RN-09: superar la vigente en al menos el incremento mínimo.
+            const minimo = vigente.valor.sumar(this.incrementoMinimo);
 
-                throw new Error(
-                    "RN-08: La primera puja debe ser mayor o igual al precio base"
+            if (valor.esMenorQue(minimo)) {
+                this.rechazar(
+                    postorId, valorOfrecido, ahora,
+                    "RN-09",
+                    `La puja debe ser de al menos ${minimo.formatear()} ` +
+                    `(oferta vigente más el incremento mínimo)`
                 );
-
             }
         }
 
-        // RN-09: valida las pujas posteriores a la primera.
-        if (ultimaPuja) {
+        // RN-11: la puja aceptada se agrega y nunca se retira.
+        const puja = new Puja(postorId, valor, ahora);
+        this.pujas.push(puja);
 
-            const valorMinimo =
-                ultimaPuja.valor.sumar(
-                    this.incrementoMinimo
-                );
-
-            if (
-                valor <
-                valorMinimo.obtenerValor()
-            ) {
-
-                this.registrarIntentoFallido(
-                    usuarioId,
-                    "RN-09: La puja debe superar la oferta vigente más el incremento mínimo"
-                );
-
-                throw new Error(
-                "RN-09: La puja debe superar la oferta vigente más el incremento mínimo"
-            );
-
-            }
-
-        }
-
-        // RN-10: impide que un usuario supere su propia puja vigente.
-        if (
-            ultimaPuja &&
-            ultimaPuja.usuarioId === usuarioId
-        ) {
-
-            // Rechaza la puja del mismo usuario consecutivamente.
-            this.registrarIntentoFallido(
-                usuarioId,
-                "RN-10: No puede superar su propia puja vigente"
-            );
-
-            throw new Error(
-             "RN-10: No puede superar su propia puja vigente"
-            );
-        }
-
-        // Crea una nueva instancia de Puja con el usuario y el valor.
-        const nuevaPuja =
-            new Puja(
-                usuarioId,
-                new Dinero(valor)
-            );
-        // Agrega la nueva puja al listado de pujas.
-        this.pujas.push(nuevaPuja);
+        return {
+            puja,
+            postorSuperadoId: vigente ? vigente.postorId : null
+        };
     }
 
-    // Expone el estado actual sin permitir modificarlo desde fuera de la entidad.
-    obtenerEstado(): EstadoSubasta {
-    return this.estado;
-    }
-
-    // Devuelve los intentos rechazados registrados durante la vida de la entidad.
-    obtenerIntentosFallidos(): IntentoPujaFallida[] {
-
-    return this.intentosFallidos;
-
-    }
-
-    // Solo permite consultar la puja ganadora cuando la subasta ya terminó.
-    obtenerGanador(): Puja | null {
-
-    if (
-        this.estado !==
-        EstadoSubasta.CERRADA
-    ) {
-
-        throw new Error(
-            "RN-14: La subasta debe estar cerrada"
-        );
-
-    }
-
-    if (
-        this.pujas.length === 0
-    ) {
-
-        return null;
-
-    }
-
-    return this.pujas[
-        this.pujas.length - 1
-    ];
-
-    }
-
-    // Devuelve la oferta vigente, o null si todavía no hay pujas.
-    obtenerUltimaPuja(): Puja | null {
-
-        if (
-            this.pujas.length === 0
-        ) {
-
-            return null;
-
-        }
-
-        return this.pujas[
-            this.pujas.length - 1
-        ];
-
-    }
-
-    // Expone las pujas para consulta y persistencia.
-    obtenerPujas(): Puja[] {
-
-    return this.pujas;
-
-    }
-
-    // Devuelve el identificador adjudicado al cierre, si existe.
-    obtenerGanadorId(): string | null {
-
-    return this.ganadorId;
-
-    }
-
-    // Devuelve la orden de pago generada para la puja ganadora, si existe.
-    obtenerOrdenPago():OrdenPago | null {
-    return this.ordenPago;
-    }
-
-    // Cancela la subasta únicamente mientras no haya recibido pujas.
-    cancelar(): void {
-
-    if (this.pujas.length > 0) {
-
-        throw new Error(
-            "RN-04: No se puede cancelar una subasta que ya recibió pujas"
-        );
-
-    }
-
-    this.estado =
-        EstadoSubasta.CANCELADA;
-
-    }
-
-    // Finaliza la subasta: la declara desierta o adjudica la última puja y crea
-    // una orden de pago con un plazo de 48 horas.
-    cerrar(): void {
-
-    if (
-        this.estado === EstadoSubasta.CERRADA ||
-        this.estado === EstadoSubasta.DESIERTA
-    ) {
-
-        throw new Error(
-            "RN-16: La subasta ya fue cerrada"
-        );
-
-    }
-
-    const ahora =
-        new Date();
-
-    if (
-        ahora < this.fechaCierre
-    ) {
-
-        throw new Error(
-            "RN-13: La subasta aún no ha llegado a su fecha de cierre"
-        );
-
-    }
-
-    if (
-        this.estado ===
-        EstadoSubasta.CANCELADA
-    ) {
-
-        throw new Error(
-            "RN-13: No puede cerrarse una subasta cancelada"
-        );
-
-    }
-
-    if (
-        this.pujas.length === 0
-    ) {
-
-        this.estado =
-            EstadoSubasta.DESIERTA;
-
-        return;
-
-    }
-
-    const pujaGanadora =
-        this.pujas[
-            this.pujas.length - 1
-        ];
-
-    this.ganadorId =
-        pujaGanadora.usuarioId;
-
-    const fechaLimite =
-        new Date();
-
-    fechaLimite.setHours(
-        fechaLimite.getHours() + 48
-    );
-
-    this.ordenPago =
-        new OrdenPago(
-            pujaGanadora.usuarioId,
-            pujaGanadora.valor.obtenerValor(),
-            fechaLimite
-        );
-
-    this.estado =
-        EstadoSubasta.CERRADA;
-
-    }
-
-    estaVencida(): boolean {
-
-    return (
-        new Date() >=
-        this.fechaCierre
-        );
-
-    }
-    // Conserva el motivo de una puja rechazada para su consulta posterior.
-    private registrarIntentoFallido(
-        usuarioId: string,
+    // RN-12: todo rechazo queda registrado con su motivo antes de informarse.
+    private rechazar(
+        postorId: string,
+        valorOfrecido: number,
+        ahora: Date,
+        codigo: string,
         motivo: string
-    ): void {
+    ): never {
 
-    this.intentosFallidos.push(
-        new IntentoPujaFallida(
-            usuarioId,
-            motivo
-        )
-    );
+        this.intentosFallidos.push(
+            new IntentoPujaFallida(
+                postorId,
+                Number.isFinite(valorOfrecido) ? valorOfrecido : 0,
+                codigo,
+                motivo,
+                ahora
+            )
+        );
 
-    
+        throw new ErrorDominio(codigo, motivo);
+    }
+
+    // ───────────────────────────── Cancelación ─────────────────────────────
+
+    cancelar(solicitanteId: string, ahora: Date = new Date()): void {
+
+        if (solicitanteId !== this.vendedorId) {
+            throw new ErrorDominio(
+                "SOLO_VENDEDOR",
+                "Solo el vendedor puede cancelar su subasta",
+                "PROHIBIDO"
+            );
+        }
+
+        if (this.estado !== EstadoSubasta.ABIERTA || this.plazoTerminado(ahora)) {
+            throw new ErrorDominio(
+                "RN-04",
+                "Solo puede cancelarse una subasta abierta"
+            );
+        }
+
+        // RN-04: con la primera puja la venta queda comprometida.
+        if (this.pujas.length > 0) {
+            throw new ErrorDominio(
+                "RN-04",
+                "No se puede cancelar una subasta que ya recibió pujas"
+            );
+        }
+
+        this.estado = EstadoSubasta.CANCELADA;
+    }
+
+    // ───────────────────────── Cierre y adjudicación ─────────────────────────
+
+    // Cierre perezoso: si el plazo terminó y sigue abierta, la cierra.
+    // Devuelve true solo cuando el cierre ocurre en esta llamada.
+    verificarCierre(ahora: Date = new Date()): boolean {
+
+        if (this.estado !== EstadoSubasta.ABIERTA || !this.plazoTerminado(ahora)) {
+            return false;
+        }
+
+        this.cerrar(ahora);
+        return true;
+    }
+
+    cerrar(ahora: Date = new Date()): void {
+
+        // RN-16: una subasta solo se cierra una vez.
+        if (this.estado !== EstadoSubasta.ABIERTA) {
+            throw new ErrorDominio(
+                "RN-16",
+                "La subasta ya no está abierta; su resultado no puede alterarse",
+                "CONFLICTO"
+            );
+        }
+
+        if (!this.plazoTerminado(ahora)) {
+            throw new ErrorDominio(
+                "RN-13",
+                "La subasta aún no llega a su fecha de cierre"
+            );
+        }
+
+        const ganadora = this.obtenerPujaVigente();
+
+        // RN-14: sin pujas se declara desierta y no genera pago.
+        if (!ganadora) {
+            this.estado = EstadoSubasta.DESIERTA;
+            return;
+        }
+
+        // RN-13 y RN-15: se adjudica al mejor postor y nace la orden de pago.
+        this.ganadorId = ganadora.postorId;
+        this.ordenPago = OrdenPago.emitir({
+            subastaId: this.id,
+            ganadorId: ganadora.postorId,
+            valor: ganadora.valor,
+            ahora
+        });
+        this.estado = EstadoSubasta.CERRADA;
+    }
+
+    // ──────────────────────────────── Pago ────────────────────────────────
+
+    // RN-20: si el plazo de la orden pasó sin confirmación, se declara vencida.
+    verificarVencimientoPago(ahora: Date = new Date()): boolean {
+
+        if (
+            this.estado !== EstadoSubasta.CERRADA ||
+            !this.ordenPago ||
+            this.ordenPago.obtenerEstado() !== EstadoPago.PENDIENTE ||
+            !this.ordenPago.plazoVencido(ahora)
+        ) {
+            return false;
+        }
+
+        this.ordenPago.vencer();
+        this.estado = EstadoSubasta.INCUMPLIDA;
+        return true;
+    }
+
+    // RN-17: el pago solo se confirma a partir de la notificación de la pasarela.
+    // Devuelve true si el estado cambió.
+    registrarResultadoPago(
+        resultado: ResultadoPago,
+        ahora: Date = new Date()
+    ): boolean {
+
+        const orden = this.ordenPago;
+
+        if (!orden) {
+            throw new ErrorDominio(
+                "ORDEN_INEXISTENTE",
+                "La subasta no tiene una orden de pago",
+                "NO_ENCONTRADO"
+            );
+        }
+
+        this.verificarVencimientoPago(ahora);
+
+        if (orden.obtenerEstado() === EstadoPago.VENCIDA) {
+            throw new ErrorDominio(
+                "RN-20",
+                "La orden de pago está vencida; la subasta quedó en incumplimiento",
+                "CONFLICTO"
+            );
+        }
+
+        if (orden.obtenerEstado() === EstadoPago.PAGADA) {
+            return false;
+        }
+
+        if (resultado === ResultadoPago.RECHAZADO) {
+            // El cobro falló: la orden sigue pendiente dentro de su plazo.
+            return false;
+        }
+
+        orden.confirmarPago(ahora);
+        this.estado = EstadoSubasta.PAGADA;
+        return true;
+    }
+
+    // ───────────────────────────── Consultas ─────────────────────────────
+
+    obtenerEstado(): EstadoSubasta {
+        return this.estado;
+    }
+
+    obtenerPujas(): readonly Puja[] {
+        return [...this.pujas];
+    }
+
+    obtenerIntentosFallidos(): readonly IntentoPujaFallida[] {
+        return [...this.intentosFallidos];
+    }
+
+    obtenerPujaVigente(): Puja | null {
+        return this.pujas.length > 0 ? this.pujas[this.pujas.length - 1] : null;
+    }
+
+    obtenerGanadorId(): string | null {
+        return this.ganadorId;
+    }
+
+    obtenerOrdenPago(): OrdenPago | null {
+        return this.ordenPago;
+    }
+
+    // Monto mínimo que se aceptaría en la siguiente puja.
+    montoMinimoSiguiente(): number {
+        const vigente = this.obtenerPujaVigente();
+        return vigente
+            ? vigente.valor.sumar(this.incrementoMinimo).obtenerValor()
+            : this.precioBase.obtenerValor();
+    }
+
+    obtenerParticipantesIds(): string[] {
+        return [...new Set(this.pujas.map((puja) => puja.postorId))];
+    }
+
+    plazoTerminado(ahora: Date = new Date()): boolean {
+        return ahora.getTime() >= this.fechaCierre.getTime();
     }
 
 }
