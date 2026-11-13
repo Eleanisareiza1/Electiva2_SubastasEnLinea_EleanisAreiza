@@ -13,27 +13,8 @@ const POR_DEFECTO = { fondo: 'linear-gradient(135deg,#334155,#64748b)', icono: '
 
 @Component({
   selector: 'app-imagen-articulo',
-  template: `
-    <div class="marco" [style.background]="!mostrarFoto() ? estilo().fondo : null" [class.grande]="grande()">
-      @if (mostrarFoto()) {
-        <img [src]="url()" [alt]="titulo()" loading="lazy" (error)="fallo.set(true)" />
-      } @else {
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path [attr.d]="estilo().icono" /></svg>
-        <span>{{ categoria() }}</span>
-      }
-    </div>
-  `,
-  styles: `
-    :host { display: block; }
-    .marco { position: relative; width: 100%; aspect-ratio: 4 / 3; border-radius: 10px; overflow: hidden;
-      display: grid; place-items: center; align-content: center; gap: 6px; color: rgba(255,255,255,.95); }
-    .marco img { width: 100%; height: 100%; object-fit: cover; }
-    .marco svg { width: 42%; max-width: 72px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
-    .marco span { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; opacity: .85; }
-    .grande { aspect-ratio: 16 / 9; max-height: 440px; border-radius: 16px; }
-    .grande svg { max-width: 140px; }
-    .grande span { font-size: 14px; }
-  `
+  templateUrl: './imagen-articulo.html',
+  styleUrl: './imagen-articulo.css'
 })
 export class ImagenArticulo {
   readonly url = input<string | null>(null);

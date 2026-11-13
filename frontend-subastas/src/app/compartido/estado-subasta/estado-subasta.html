@@ -1,0 +1,6 @@
+<span class="insignia" [attr.data-estado]="estado()">
+  @if (estado() === 'ABIERTA') {
+    <span class="pulso"></span>
+  }
+  {{ etiqueta() }}
+</span>

@@ -1,5 +1,5 @@
 import { Component, computed, effect, inject, input, output } from '@angular/core';
-import { RelojService } from './reloj.service';
+import { RelojService } from '../servicios/reloj.service';
 
 function dosDigitos(n: number): string {
   return n.toString().padStart(2, '0');
@@ -8,22 +8,8 @@ function dosDigitos(n: number): string {
 // Píldora con el tiempo restante para el cierre; se pone roja en la última hora.
 @Component({
   selector: 'app-cuenta-regresiva',
-  template: `
-    <span class="cuenta" [class.urgente]="urgente()" [class.terminada]="restanteMs() <= 0" [class.grande]="grande()">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8" /><path d="M12 9v4l2.5 2M9 2h6" /></svg>
-      {{ texto() }}
-    </span>
-  `,
-  styles: `
-    .cuenta { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 8px;
-      border: 1.5px solid var(--gris-300); color: var(--texto-suave); font-weight: 700; font-size: 13px;
-      font-variant-numeric: tabular-nums; background: #fff; white-space: nowrap; }
-    .cuenta svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
-    .urgente { border-color: var(--rojo); color: var(--rojo); background: #fff1f1; }
-    .terminada { border-color: var(--gris-300); color: var(--texto-suave); background: var(--gris-100); }
-    .grande { font-size: 22px; padding: 8px 14px; border-radius: 12px; }
-    .grande svg { width: 22px; height: 22px; }
-  `
+  templateUrl: './cuenta-regresiva.html',
+  styleUrl: './cuenta-regresiva.css'
 })
 export class CuentaRegresiva {
 

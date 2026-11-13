@@ -1,11 +1,11 @@
 import { DatePipe } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { AlertaError } from '../../compartido/alerta-error';
-import { CuentaRegresiva } from '../../compartido/cuenta-regresiva';
-import { EstadoSubastaInsignia } from '../../compartido/estado-subasta';
-import { ImagenArticulo } from '../../compartido/imagen-articulo';
-import { PesosPipe } from '../../compartido/pesos.pipe';
+import { AlertaError } from '../../compartido/alerta-error/alerta-error';
+import { CuentaRegresiva } from '../../compartido/cuenta-regresiva/cuenta-regresiva';
+import { EstadoSubastaInsignia } from '../../compartido/estado-subasta/estado-subasta';
+import { ImagenArticulo } from '../../compartido/imagen-articulo/imagen-articulo';
+import { PesosPipe } from '../../compartido/pipes/pesos.pipe';
 import { ErrorMostrable, interpretarError } from '../../core/errores';
 import { Perfil } from '../../core/modelos';
 import { SubastasService } from '../../core/servicios/subastas.service';

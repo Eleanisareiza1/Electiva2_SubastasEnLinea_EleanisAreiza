@@ -1,9 +1,9 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { AlertaError } from '../../compartido/alerta-error';
-import { ImagenArticulo } from '../../compartido/imagen-articulo';
-import { PesosPipe } from '../../compartido/pesos.pipe';
+import { AlertaError } from '../../compartido/alerta-error/alerta-error';
+import { ImagenArticulo } from '../../compartido/imagen-articulo/imagen-articulo';
+import { PesosPipe } from '../../compartido/pipes/pesos.pipe';
 import { ErrorMostrable, interpretarError } from '../../core/errores';
 import { Categoria, ESTADOS_CONSERVACION } from '../../core/modelos';
 import { AvisosService } from '../../core/servicios/avisos.service';

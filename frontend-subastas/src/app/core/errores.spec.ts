@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { PesosPipe } from '../compartido/pesos.pipe';
+import { PesosPipe } from '../compartido/pipes/pesos.pipe';
 import { interpretarError } from './errores';
 
 describe('interpretarError (RF-25)', () => {

@@ -1,11 +1,11 @@
 import { Component, DestroyRef, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { AlertaError } from '../../compartido/alerta-error';
-import { CuentaRegresiva } from '../../compartido/cuenta-regresiva';
-import { EstadoSubastaInsignia } from '../../compartido/estado-subasta';
-import { ImagenArticulo } from '../../compartido/imagen-articulo';
-import { PesosPipe } from '../../compartido/pesos.pipe';
+import { AlertaError } from '../../compartido/alerta-error/alerta-error';
+import { CuentaRegresiva } from '../../compartido/cuenta-regresiva/cuenta-regresiva';
+import { EstadoSubastaInsignia } from '../../compartido/estado-subasta/estado-subasta';
+import { ImagenArticulo } from '../../compartido/imagen-articulo/imagen-articulo';
+import { PesosPipe } from '../../compartido/pipes/pesos.pipe';
 import { ErrorMostrable, interpretarError } from '../../core/errores';
 import { Categoria, ESTADOS_CONSERVACION, ESTADOS_SUBASTA, Listado as ListadoApi, Perfil, SubastaResumen } from '../../core/modelos';
 import { NotificacionesService } from '../../core/servicios/notificaciones.service';

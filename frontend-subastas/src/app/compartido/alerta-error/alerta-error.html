@@ -1,0 +1,13 @@
+@if (error(); as e) {
+  <div class="alerta" role="alert">
+    <span class="codigo">{{ e.codigo }}</span>
+    <div>
+      <strong>{{ e.mensaje }}</strong>
+      @if (e.detalles.length) {
+        <ul>
+          @for (d of e.detalles; track d) { <li>{{ d }}</li> }
+        </ul>
+      }
+    </div>
+  </div>
+}
